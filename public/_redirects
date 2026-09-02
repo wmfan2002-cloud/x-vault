@@ -1,0 +1,12 @@
+# 目前不需要任何重写规则。
+#
+# 试过用 `/my /index.html 200` 做重写让 /my 成为独立路径，但 Pages 实际回的是
+# **308 永久跳转**（wrangler pages dev 实测），地址栏会变成 /index.html，
+# 那就不是"独立页面"了。
+#
+# 不需要的原因：Pages 对未匹配到静态文件的路径**默认回退到 index.html**
+# （实测 /nonexistent-page 就是 200 + 首页内容）。所以 /my 和 /favorites
+# 天然可用，app.js 读 location.pathname 决定初始视图即可。
+#
+# ⚠️ 代价：任何拼错的路径也会返回首页而不是 404。对这个站可以接受
+# （只有三个前台路径），但如果以后要真正的 404 页，就得加 public/404.html。

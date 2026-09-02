@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="oled">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X-符离集 · X 博主精选画廊</title>
+  <meta name="description" content="X-符离集 — X (Twitter) 博主精选画廊与永久归档。账号被封、注销、改名之后，这里还找得到。">
+  <link rel="icon" type="image/png" href="/logo-icon.png">
+  
+  <!-- Modern Typography Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/style.css?v=790529d4df">
+</head>
+<body>
+
+  <!-- Interactive Canvas Starfield Particles Background (React-Bits Canvas) -->
+  <canvas id="bg-particles-canvas"></canvas>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Sticky Header (Slim & Purified) -->
+    <header class="v2-header">
+      <div class="header-inner">
+        
+        <!-- Brand identity (No shake / head-tilt animation, purified brand) -->
+        <div class="header-brand-group">
+          <a href="/" class="brand-link">
+            <div class="brand-avatar">
+              <img src="/logo-icon.png" alt="X-符离集" class="brand-img" onerror="this.style.display='none'">
+            </div>
+            <div class="brand-text">
+              <span class="brand-name">X-符离集</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- 视图切换：三个真实路径（/ · /my · /favorites），不是弹层。
+             登录后才显示后两个 —— 未登录时它们只会是空页。 -->
+        <nav class="view-switch hidden" id="view-switch" aria-label="切换视图">
+          <a class="vs-btn" href="/" data-view="all">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>画廊</span>
+          </a>
+          <a class="vs-btn" href="/my" data-view="mine">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 4h16v12H5.17L4 17.17V4z"/><line x1="8" y1="9" x2="16" y2="9"/></svg>
+            <span>我的收录</span>
+            <span class="vs-count" id="vs-count-mine">0</span>
+          </a>
+          <a class="vs-btn" href="/favorites" data-view="fav">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span>我的收藏</span>
+            <span class="vs-count" id="vs-count-fav">0</span>
+          </a>
+        </nav>
+
+        <!-- Global Search Bar -->
+        <div class="header-search-wrap">
+          <div class="search-box">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="global-search" placeholder="搜索博主 ID (@handle)、昵称或简介 Bio..." autocomplete="off" spellcheck="false" aria-label="搜索博主">
+            <button id="search-clear-btn" class="search-clear-btn hidden" title="清空搜索 (ESC)" aria-label="清空搜索">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <kbd class="key-shortcut" title="按 '/' 键快速聚焦">/</kbd>
+          </div>
+        </div>
+
+        <!-- Right Quick Controls -->
+        <div class="header-actions">
+          
+          <!-- Random Discovery Roulette Button (React-Bits Slot Machine) -->
+          <button class="btn-lucky-pick" id="btn-lucky-pick" title="随机探索一位博主 (快捷键: R)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="12" height="12" x="2" y="10" rx="2" ry="2"/>
+              <path d="m17.92 14 3.5-3.5a2.41 2.41 0 0 0 0-3.41l-4.5-4.5a2.41 2.41 0 0 0-3.41 0L10 6.08"/>
+              <path d="M6 14h.01"/><path d="M10 18h.01"/><path d="M15 10h.01"/>
+            </svg>
+            <span>随机探索</span>
+          </button>
+
+          <!-- Pure Icon Dual Theme Toggle Button (Light vs OLED) -->
+          <!-- 公告中心。关掉横幅之后仍然能从这里翻回来看 ——
+               否则"关闭"等于永久失去入口。 -->
+          <button class="ann-bell-btn hidden" id="btn-ann-center" title="站点公告" aria-label="站点公告">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <span class="ann-bell-dot hidden" id="ann-bell-dot"></span>
+          </button>
+
+          <button class="theme-toggle-btn" id="theme-btn" title="切换主题 (Light / OLED) [快捷键: T]" aria-label="切换主题">
+            <svg id="theme-icon-sun" class="hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+            </svg>
+            <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+          </button>
+
+          <!-- Admin Console Gate -->
+          <!-- 账号区：未登录显示登录按钮，登录后显示用户菜单 -->
+          <button class="btn-nav-pill" id="btn-open-auth" title="用 GitHub 或 Google 登录">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>登录</span>
+          </button>
+
+          <div class="user-menu-wrap hidden" id="user-menu-wrap">
+            <button class="btn-user-chip" id="btn-user-chip" aria-haspopup="true" aria-expanded="false">
+              <span class="user-avatar-initial" id="user-avatar-initial">U</span>
+              <span class="user-chip-name" id="user-chip-name">用户</span>
+              <svg class="arrow-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="user-dropdown hidden" id="user-dropdown" role="menu">
+              <div class="user-dropdown-head">
+                <div class="user-dd-name" id="user-dd-name">用户</div>
+                <div class="user-dd-email" id="user-dd-email"></div>
+              </div>
+              <button class="user-dd-item" data-view="mine" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/><path d="M2 10h20"/></svg>
+                <span>我的收录</span><span class="user-dd-count" id="dd-count-owned">0</span>
+              </button>
+              <button class="user-dd-item" data-view="favorites" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>我的收藏</span><span class="user-dd-count" id="dd-count-fav">0</span>
+              </button>
+              <button class="user-dd-item" data-view="xsync" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                <span>X 凭据与同步</span>
+              </button>
+              <div class="user-dd-sep"></div>
+              <button class="user-dd-item is-danger" id="btn-user-logout" role="menuitem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>退出登录</span>
+              </button>
+            </div>
+          </div>
+
+          <a href="/admin" class="btn-nav-pill" title="进入管理控制台">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>控制台</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Flow -->
+    <!-- 站点公告。只有管理台能发（POST /api/admin/announcements）。
+         正文是纯文本，渲染时 escapeHtml —— 公告出现在每个访客页面上，
+         允许 HTML 等于给全站开一个存储型 XSS 面。 -->
+    <div class="ann-bar hidden" id="ann-bar" role="status" aria-live="polite"></div>
+
+    <main class="v2-main">
+      
+      <!-- Dual-Wing Enhanced Hero Section (Spacious Luxury Feel) -->
+      <section class="hero-section">
+        <div class="hero-content-grid">
+          
+          <!-- Left: Value Prop & High-Craft Modern Bento Metric Cards -->
+          <div class="hero-left-intro">
+            <div class="hero-eyebrow">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>CURATED DISCOVERY VAULT</span>
+            </div>
+            <h1 class="hero-title"><span class="shiny-text">X 博主精选画廊</span></h1>
+            <p class="hero-description">高品质 X (Twitter) 创作者画廊 · 头像与资料永久归档 —— 账号被封、注销或改名之后，这里还找得到</p>
+            
+            <!-- Unified High-Craft Glass Data Capsule Strip -->
+            <div class="hero-unified-capsule">
+              <div class="capsule-metric-item">
+                <div class="capsule-icon icon-wrap-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="capsule-data">
+                  <span class="capsule-number" id="stat-total-chip">0</span>
+                  <span class="capsule-label">归档总数</span>
+                </div>
+              </div>
+
+              <div class="capsule-divider"></div>
+
+              <div class="capsule-metric-item">
+                <div class="capsule-icon icon-wrap-verified">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div class="capsule-data">
+                  <span class="capsule-number" id="stat-verified-chip">0%</span>
+                  <span class="capsule-label">蓝标认证</span>
+                </div>
+              </div>
+
+              <div class="capsule-divider"></div>
+
+              <div class="capsule-metric-item">
+                <div class="capsule-icon icon-wrap-gold">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                </div>
+                <div class="capsule-data">
+                  <span class="capsule-number" id="stat-max-chip">0</span>
+                  <span class="capsule-label">最高粉丝</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Spotlight Feature Card (React-Bits SpotlightCard + 3D Tilt) -->
+          <div class="hero-right-spotlight" id="hero-spotlight-card">
+            <div class="spotlight-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span class="shiny-gold">今日精选 Spotlight</span>
+            </div>
+            
+            <div class="spotlight-body" id="spotlight-dynamic-content">
+              <div class="spotlight-loading">正在挑选今日精选博主...</div>
+            </div>
+
+            <button class="btn-shuffle-spotlight" id="btn-shuffle-spotlight" title="换一个精选推荐">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              <span>换一位推荐</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+            <!-- 公开投稿：任何人都能推荐博主，自动去重校验后直接收录 -->
+      <section class="submit-section" id="submit-section">
+        <div class="submit-card">
+          <div class="submit-copy">
+            <div class="submit-eyebrow">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <span>COMMUNITY SUBMISSION · 无需审核</span>
+            </div>
+            <h2 class="submit-title">推荐一位博主</h2>
+            <p class="submit-desc">
+              填入 X 的 handle 即可，也可以直接粘主页链接。系统会自动核实账号、去重，抓取头像与资料归档 —— 无需审核，提交即收录。
+            </p>
+          </div>
+
+          <form class="submit-form" id="submit-form" autocomplete="off">
+            <div class="submit-input-wrap">
+              <span class="submit-at">@</span>
+              <input type="text" id="submit-handle" placeholder="handle 或主页链接"
+                     autocomplete="off" spellcheck="false" maxlength="120"
+                     aria-label="要推荐的博主 handle">
+            </div>
+            <button type="submit" class="btn-submit-blogger" id="btn-submit-blogger">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>提交收录</span>
+            </button>
+          </form>
+
+          <!-- 仅登录用户可选私密；未登录时隐藏，投稿一律公开 -->
+          <div class="submit-visibility hidden" id="submit-visibility">
+            <span class="sv-label">收录为</span>
+            <label class="sv-opt">
+              <input type="radio" name="submit-vis" value="public" checked>
+              <span>公开（出现在画廊）</span>
+            </label>
+            <label class="sv-opt">
+              <input type="radio" name="submit-vis" value="private">
+              <span>仅自己可见</span>
+            </label>
+          </div>
+
+          <div class="submit-result hidden" id="submit-result"></div>
+        </div>
+      </section>
+
+<!-- Discovery & Command Toolbar -->
+      <!-- 我的收录 / 我的收藏 专属：视图标题 + 标签（文件夹）筛选。
+           标签是每用户的私有标注，两个视图共用同一套（同一个人不必贴两次标签）。 -->
+      <section class="mylist-head hidden" id="mylist-head">
+        <div class="mh-title-row">
+          <h1 class="mh-title" id="mh-title">我的收录</h1>
+          <span class="mh-sub" id="mh-sub"></span>
+        </div>
+
+        <!-- 仅「我的收录」：公开/私密 筛选 + 批量切换。
+             批量作用于**当前筛选结果**（标签 + 搜索 + 筛选都算进去），
+             而不是无条件全库 —— 那样太容易误触。 -->
+        <div class="mine-tools hidden" id="mine-tools">
+          <div class="mine-vis-filter">
+            <button class="tag-chip active" data-visf="">全部</button>
+            <button class="tag-chip" data-visf="public">公开</button>
+            <button class="tag-chip" data-visf="private">仅自己可见</button>
+          </div>
+          <span style="flex:1"></span>
+          <button class="up-btn" id="btn-bulk-public">
+            <span id="bulk-public-label">当前全部公开</span>
+          </button>
+          <button class="up-btn" id="btn-bulk-private">当前全部设为私密</button>
+          <button class="up-btn is-danger" id="btn-bulk-uncollect" title="把当前列表从「我的收录」中移除。公开仓与他人的收录不受影响">当前全部取消收录</button>
+        </div>
+
+        <div class="tag-bar" id="tag-bar">
+          <button class="tag-chip active" data-tag="">全部</button>
+          <button class="tag-chip" data-tag="__untagged">未分类</button>
+          <span class="tag-bar-divider"></span>
+          <!-- 标签按钮由 app.js 注入 -->
+          <button class="tag-chip is-manage" id="btn-manage-tags" title="新建 / 改名 / 删除标签">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>管理标签</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="discovery-bar">
+        
+        <!-- Row 1: Filter Tags on Left, View Switcher Tabs on Right -->
+        <div class="filter-header-row">
+          <div class="filter-pills-row" role="tablist">
+            <button class="f-pill active" data-filter="all">
+              <span>全部</span>
+              <span class="pill-badge" id="badge-count-all">0</span>
+            </button>
+            <button class="f-pill" data-filter="hot" title="按访客点击跳转 X 主页的热度排行">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+              <span>热度排行</span>
+              <span class="pill-badge" id="badge-count-hot">0</span>
+            </button>
+            <button class="f-pill" data-filter="verified">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+              <span>蓝标认证</span>
+              <span class="pill-badge" id="badge-count-verified">0</span>
+            </button>
+            <button class="f-pill" data-filter="top">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+              <span>Top 头部 (50万+)</span>
+            </button>
+            <button class="f-pill" data-filter="100k">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>知名创作者 (10万+)</span>
+            </button>
+            <button class="f-pill" data-filter="recent">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>最新归档</span>
+              <span class="pill-badge" id="badge-count-recent">0</span>
+            </button>
+            <button class="f-pill" data-filter="lost" title="X 官方已被封号或注销的博主档案（赛博坟场）">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
+              <span>赛博坟场</span>
+              <span class="pill-badge tombstone" id="badge-count-lost">0</span>
+            </button>
+          </div>
+
+          <!-- View Mode Toggler (Grid / Compact / List) on Far Right -->
+          <div class="view-mode-tabs" role="radiogroup" aria-label="布局模式">
+            <button class="view-tab-btn active" data-view="grid" title="自适应瀑布流 (快捷键: 1)" aria-label="自适应瀑布流视图">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            </button>
+            <button class="view-tab-btn" data-view="compact" title="密集紧凑 (快捷键: 2)" aria-label="密集紧凑视图">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            </button>
+            <button class="view-tab-btn" data-view="list" title="数据列表 (快捷键: 3)" aria-label="数据列表视图">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 2: Sort Popover & Result Metrics -->
+        <div class="discovery-meta-row">
+          <div class="results-indicator" id="results-count-text">
+            正在载入画廊数据...
+          </div>
+
+          <div class="sort-selector-wrap">
+            <span class="sort-label">排序:</span>
+            <div class="custom-select-box" id="sort-select-box">
+              <button class="select-trigger-btn" id="sort-trigger-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span id="sort-current-text">粉丝数从高到低</span>
+                <svg class="arrow-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div class="select-dropdown-menu hidden" id="sort-menu" role="listbox">
+                <div class="menu-item active" data-val="followers-desc" role="option">
+                  <span>粉丝数从高到低</span>
+                  <svg class="check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="followers-asc" role="option">
+                  <span>粉丝数从低到高</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="name-asc" role="option">
+                  <span>博主名称 (A → Z)</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="recent" role="option">
+                  <span>归档时间最近</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gallery Showcase Wall (Discrete Multi-Column Masonry Flow) -->
+      <section class="gallery-container">
+        <div class="blogger-wall grid-view" id="blogger-wall">
+          <div class="card-skeleton"></div>
+          <div class="card-skeleton"></div>
+          <div class="card-skeleton"></div>
+        </div>
+
+        <!-- Infinite Scroll Sentinel Indicator -->
+        <div id="infinite-scroll-sentinel" class="infinite-scroll-loading hidden">
+          <div class="infinite-spinner"></div>
+          <span>加载更多博主中...</span>
+        </div>
+
+        <!-- Empty State 1: Database Empty -->
+        <div class="v2-empty-state hidden" id="empty-state-db">
+          <div class="empty-icon-wrap" style="color: var(--accent-gold); background: var(--accent-gold-subtle);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          </div>
+          <h3 class="empty-title">当前归档库尚无博主数据</h3>
+          <p class="empty-desc">您可以前往管理后台一键同步 X (Twitter) 关注列表。</p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 6px;">
+            <a href="/admin" class="btn-primary-action">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>前往控制台一键同步</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Empty State 2: Filter/Search Mismatch -->
+        <div class="v2-empty-state hidden" id="empty-state-search">
+          <div class="empty-icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+          </div>
+          <h3 class="empty-title">未找到匹配的博主</h3>
+          <p class="empty-desc">没有匹配到任何符合搜索条件或分类的博主，您可以尝试清除关键词。</p>
+          <button class="btn-reset-filters" id="btn-reset-filters">重置筛选条件</button>
+        </div>
+      </section>
+
+
+    </main>
+
+    <!-- 公告中心：列出全部生效中的公告（含已关闭过的） -->
+    <div class="anncenter-backdrop hidden" id="anncenter-backdrop">
+      <div class="anncenter-panel">
+        <button class="auth-close" id="anncenter-close" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="auth-head">
+          <h3>站点公告</h3>
+          <p>这里能看到全部生效中的公告，包括你在横幅上关掉过的。</p>
+        </div>
+        <div class="anncenter-list" id="anncenter-list"></div>
+      </div>
+    </div>
+
+    <!-- 标签管理 -->
+    <div class="tagmgr-backdrop hidden" id="tagmgr-backdrop">
+      <div class="tagmgr-panel">
+        <button class="auth-close" id="tagmgr-close" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="auth-head">
+          <h3>管理标签</h3>
+          <p>标签只有你自己看得见，收录和收藏共用同一套。删除标签不会影响博主档案。</p>
+        </div>
+
+        <form class="tagmgr-new" id="form-new-tag" autocomplete="off">
+          <input type="text" id="new-tag-name" placeholder="新标签名，如「摄影」「想追的」" maxlength="24" aria-label="新标签名">
+          <div class="tag-color-picker" id="new-tag-color" role="radiogroup" aria-label="标签颜色"></div>
+          <button type="submit" class="up-btn is-primary">新建</button>
+        </form>
+
+        <div class="tagmgr-list" id="tagmgr-list"></div>
+        <div class="auth-msg hidden" id="tagmgr-msg"></div>
+      </div>
+    </div>
+
+    <!-- 给单个博主贴标签 -->
+    <div class="tagpick-backdrop hidden" id="tagpick-backdrop">
+      <div class="tagpick-panel">
+        <button class="auth-close" id="tagpick-close" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="auth-head">
+          <h3 id="tagpick-title">归入标签</h3>
+          <p>勾选后点保存。一位博主可以同时属于多个标签。</p>
+        </div>
+        <div class="tagpick-list" id="tagpick-list"></div>
+        <div class="tagpick-actions">
+          <button class="up-btn" id="tagpick-manage">管理标签</button>
+          <span style="flex:1"></span>
+          <button class="up-btn is-primary" id="tagpick-save">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 回到顶部。无限滚动会一直加载直到全部显示完，滚下去之后想回搜索框/投稿框
+         得反向滚很久 —— 这个按钮是那个问题的直接解法。 -->
+    <button class="btn-back-top hidden" id="btn-back-top" title="回到顶部" aria-label="回到顶部">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
+
+    <!-- Impeccable Frameless Floating Single Card Random Discovery Modal (React-Bits Slot Machine) -->
+    <div class="roulette-backdrop hidden" id="random-roulette-backdrop">
+      <div class="roulette-frameless-wrapper">
+        
+        <!-- Single Pure Card (No outer white container or headers) -->
+        <div class="roulette-floating-card" id="roulette-card-container">
+          <div class="roulette-banner" id="roulette-banner" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80');"></div>
+          
+          <div class="roulette-avatar-zone">
+            <div style="position: relative; overflow: visible;">
+              <img id="roulette-avatar" class="roulette-avatar-img" src="https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png" alt="Avatar">
+              <span id="roulette-verified" class="badge-verified-native" style="bottom: 0; right: 0;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+            </div>
+            <span id="roulette-tag" class="card-influence-pill top-tier">Top Creator</span>
+          </div>
+
+          <div class="roulette-info-zone">
+            <div class="roulette-name-row">
+              <span id="roulette-name" class="roulette-name">博主昵称</span>
+            </div>
+            <span id="roulette-handle" class="roulette-handle">@handle · 0 关注者</span>
+            <div id="roulette-bio" class="roulette-bio">博主简介信息正在流转...</div>
+          </div>
+        </div>
+
+        <!-- Pure Bottom Action Buttons (Hidden during shuffling, revealed upon settle) -->
+        <div class="roulette-outside-actions" id="roulette-outside-actions">
+          <a class="btn-roulette-visit" id="btn-roulette-visit" href="https://x.com" target="_blank">
+            <span>直达 X 个人主页</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <button class="btn-reshuffle" id="btn-reshuffle-again">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            <span>再抽一次 (按 R)</span>
+          </button>
+        </div>
+
+        <div class="roulette-dismiss-hint" id="roulette-dismiss-hint">按 ESC 或点击任意空白处关闭</div>
+
+      </div>
+    </div>
+
+    <!-- Blogger Inspector Detail Drawer (Manual card inspector) -->
+    <div class="inspector-backdrop hidden" id="inspector-backdrop">
+      <aside class="inspector-drawer" id="inspector-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-user-name">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="drawer-badge-tag" id="drawer-badge-tag">博主档案</span>
+            <span class="drawer-meta-tip">按 ESC 关闭</span>
+          </div>
+          <button class="drawer-close-btn" id="drawer-close-btn" title="关闭 (ESC)" aria-label="关闭详情">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        
+        <div class="drawer-body" id="drawer-body-content">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </aside>
+    </div>
+
+    <!-- 登录（仅 GitHub / Google，无邮箱注册） -->
+    <div class="auth-backdrop hidden" id="auth-backdrop">
+      <div class="auth-panel">
+        <button class="auth-close" id="auth-close" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <div class="auth-head">
+          <h3>登录 X-符离集</h3>
+          <p>本站不开放邮箱注册，只能用下面两种方式进来。首次登录会自动创建账号。</p>
+        </div>
+
+        <div class="auth-oauth">
+          <a class="oauth-btn oauth-github" id="oauth-github" href="/api/auth/oauth/github" data-provider="github">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-2.91-.88-2.91-2.9 0-.65.23-1.19.61-1.61-.06-.15-.27-.77.06-1.6 0 0 .5-.16 1.64.61a5.6 5.6 0 0 1 1.5-.2c.51 0 1.02.07 1.5.2 1.14-.78 1.64-.61 1.64-.61.33.83.12 1.45.06 1.6.38.42.61.95.61 1.61 0 2.03-1.13 2.7-2.92 2.9.29.25.55.74.55 1.5 0 1.08-.01 1.96-.01 2.23 0 .21.15.46.55.38A7.99 7.99 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            <span>使用 GitHub 登录</span>
+          </a>
+          <a class="oauth-btn oauth-google" id="oauth-google" href="/api/auth/oauth/google" data-provider="google">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62Z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.97 10.72a5.41 5.41 0 0 1 0-3.44V4.94H.96a9 9 0 0 0 0 8.12l3.01-2.34Z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59A8.98 8.98 0 0 0 .96 4.94l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58Z"/></svg>
+            <span>使用 Google 登录</span>
+          </a>
+        </div>
+
+        <div class="auth-msg hidden" id="auth-msg"></div>
+
+        <p class="auth-foot">
+          登录后可以：收录博主（公开或仅自己可见）、收藏到只有你看得到的收藏页、
+          以及用你自己的 X 凭据同步关注列表。<br>
+          我们只读取你的<strong>邮箱与昵称</strong>用来建账号，不会拿到你的密码，也不会替你发任何内容。
+        </p>
+      </div>
+    </div>
+
+    <!-- 我的收录 / 我的收藏 / X 凭据与同步 -->
+    <div class="userpanel-backdrop hidden" id="userpanel-backdrop">
+      <aside class="userpanel">
+        <div class="userpanel-head">
+          <h2 id="userpanel-title">我的收录</h2>
+          <button class="drawer-close-btn" id="userpanel-close" aria-label="关闭">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="userpanel-body" id="userpanel-body"></div>
+      </aside>
+    </div>
+
+    <!-- Floating Toast Notification -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- Minimal Modern Footer -->
+    <footer class="v2-footer">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span style="font-weight: 700; color: var(--text-main);">X-符离集</span>
+          <span class="dot-sep">·</span>
+          <span>X-Archive Curation Vault</span>
+        </div>
+        <div class="footer-right">
+          <a href="/admin" class="footer-link">管理控制台</a>
+          <span class="dot-sep">·</span>
+          <span class="footer-shortcuts">
+            <kbd>/</kbd> 搜索 
+            <kbd>R</kbd> 抽卡 
+            <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 视图 
+            <kbd>T</kbd> 主题
+          </span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="/app.js?v=2631e176a8" type="module"></script>
+</body>
+</html>

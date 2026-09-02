@@ -1,0 +1,30 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.DS_Store
+*.log
+
+# 由脚本生成
+migrations/seed.generated.sql
+
+# 抢救下来的媒体, 体积大, 不入库
+recovered-media/
+!.dev.vars.example
+
+# 删除前的数据备份（含真实博主档案，不入仓库）
+backups/
+
+# 运维日志（含服务器 IP、旧密码等敏感信息，仅本地留存）
+STATE.md
+
+# 真实创作者数据（公开快照 334 条档案）。克隆后用 npm run snapshot 从自己的 D1 重新生成，
+# 或直接建 private 仓库后 git add -f 放行 —— 上传前先想清楚这批数据是否适合公开。
+public/data/archive.json
+
+# 原站（nv-pu-sa）客户端源码拷贝，仅本地比对用，不发布
+_reference/nvpusa/
+
+# 编辑器
+.idea/
+.vscode/

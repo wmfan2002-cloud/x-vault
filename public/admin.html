@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X-符离集 · 管理控制台</title>
+  <link rel="icon" type="image/png" href="/logo-icon.png">
+  
+  <!-- Modern Typography Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js 4.4.x for High-Performance Dark/Light Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  
+  <link rel="stylesheet" href="/style.css?v=790529d4df">
+</head>
+<body>
+
+  <!-- Starfield Canvas Particles Background -->
+  <canvas id="bg-particles-canvas"></canvas>
+
+  <div class="app-container">
+    
+    <!-- Top Sticky Header -->
+    <header class="v2-header">
+      <div class="header-inner admin-header-inner">
+        <div class="header-brand-group">
+          <a href="/" class="brand-link">
+            <div class="brand-avatar">
+              <img src="/logo-icon.png" alt="X-符离集" class="brand-img" onerror="this.style.display='none'">
+            </div>
+            <div class="brand-text">
+              <span class="brand-name">X-符离集</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="header-actions" id="admin-header-actions">
+          <a href="/" class="btn-nav-pill" title="返回画廊主页">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>返回画廊</span>
+          </a>
+          <button id="btn-admin-logout" class="btn-nav-pill hidden" title="登出管理员">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>退出登录</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 1. Passcode Lock Screen Auth Gate Modal -->
+    <div id="auth-gate-screen" class="auth-gate-overlay hidden">
+      <div class="auth-card-window" id="auth-card-box">
+        <div class="auth-card-header">
+          <div class="auth-lock-icon">
+            <img src="/logo-icon.png" alt="X-符离集" onerror="this.style.display='none'">
+          </div>
+          <h2>管理员通行鉴权</h2>
+          <p>请输入控制台授权账号与通行密码</p>
+        </div>
+
+        <form id="admin-login-form" class="auth-form-body" onsubmit="return false;">
+          <div class="field-group">
+            <label for="login-user">管理员账号 (Username)</label>
+            <input type="text" id="login-user" required placeholder="请输入管理员账号" autocomplete="username">
+          </div>
+
+          <div class="field-group">
+            <label for="login-pass">通行密码 (Passcode)</label>
+            <input type="password" id="login-pass" required placeholder="请输入通行密码" autocomplete="current-password">
+          </div>
+
+          <div id="login-error-msg" class="auth-error-banner hidden"></div>
+
+          <button type="submit" id="btn-submit-login" class="btn-primary-action full-w" style="margin-top: 10px;">
+            <span>解密并进入控制台</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. Authenticated Admin Multi-Tab Workspace -->
+    <main id="admin-dashboard-screen" class="admin-shell-container hidden">
+      
+      <!-- Top Segmented Navigation Tabs Bar -->
+      <nav class="admin-tabs-nav" role="tablist" aria-label="控制台模块导航">
+        <button class="admin-tab-btn active" data-tab="overview" id="tab-btn-overview" role="tab" aria-selected="true" aria-controls="tab-pane-overview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <span>控制台首页</span>
+        </button>
+        
+        <button class="admin-tab-btn" data-tab="bloggers" id="tab-btn-bloggers" role="tab" aria-selected="false" aria-controls="tab-pane-bloggers">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>博主档案管理</span>
+          <span class="tab-nav-badge" id="tab-nav-blogger-badge">0</span>
+        </button>
+        
+        <button class="admin-tab-btn" data-tab="analytics" id="tab-btn-analytics" role="tab" aria-selected="false" aria-controls="tab-pane-analytics">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>数据统计分析</span>
+          <span class="tab-nav-badge hot">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span>HOT</span>
+          </span>
+        </button>
+        <button class="admin-tab-btn" data-tab="announcements" id="tab-btn-announcements" role="tab" aria-selected="false" aria-controls="tab-pane-announcements">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+          <span>发布公告</span>
+        </button>
+        <button class="admin-tab-btn" data-tab="submissions" id="tab-btn-submissions" role="tab" aria-selected="false" aria-controls="tab-pane-submissions">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.17L4 17.17V4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="12.5" x2="13" y2="12.5"/></svg>
+          <span>投稿记录</span>
+        </button>
+      </nav>
+
+      <!-- ==================== TAB PANE 1: 控制台首页 (Overview & Control Hub) ==================== -->
+      <div id="tab-pane-overview" class="admin-tab-pane active" role="tabpanel" aria-labelledby="tab-btn-overview">
+        
+        <!-- 4 联排核心遥测监控条 (HUD Telemetry Ribbon) -->
+        <section class="admin-hud-ribbon">
+          <!-- 监控 1: X 凭据状态 -->
+          <div class="hud-item" id="hud-card-cred">
+            <div class="hud-icon icon-blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            </div>
+            <div class="hud-data">
+              <div class="hud-value-row">
+                <span class="hud-value" id="hud-val-cred">未登录 X 账号</span>
+                <span class="hud-badge-dot inactive" id="hud-dot-cred"></span>
+              </div>
+              <span class="hud-label">X AUTH CREDENTIALS</span>
+            </div>
+          </div>
+
+          <!-- 监控 2: 已归档博主总数 -->
+          <div class="hud-item">
+            <div class="hud-icon icon-gold">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="hud-data">
+              <span class="hud-value" id="hud-val-count">-- 位博主</span>
+              <span class="hud-label">ARCHIVED VAULT</span>
+            </div>
+          </div>
+
+          <!-- 监控 3: R2 对象存储状态 -->
+          <div class="hud-item" id="hud-card-r2">
+            <div class="hud-icon icon-purple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </div>
+            <div class="hud-data">
+              <div class="hud-value-row">
+                <span class="hud-value" id="hud-val-r2">Cloudflare R2</span>
+                <span class="hud-latency-pill fast" id="hud-r2-status">已就绪</span>
+              </div>
+              <span class="hud-label">OBJECT STORAGE · 永久冷备</span>
+            </div>
+          </div>
+
+          <!-- 监控 4: 云端数据库 -->
+          <div class="hud-item" id="hud-card-d1">
+            <div class="hud-icon icon-cyan">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
+            </div>
+            <div class="hud-data">
+              <div class="hud-value-row">
+                <span class="hud-value">Cloudflare D1</span>
+                <span class="hud-latency-pill fast" id="hud-d1-latency">测速中</span>
+              </div>
+              <span class="hud-label">EDGE SQLITE · 极速边缘</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 62% : 38% 黄金分割 Executive Bento Grid -->
+        <div class="admin-bento-grid">
+          
+          <!-- 【左侧 62% 区域】：授权中枢 + 同步控制 + 320px 宽幅极客终端 -->
+          <div class="bento-col-main">
+            
+            <!-- Panel 1: X Cookie Credentials -->
+            <section class="vault-panel-card" id="panel-credentials">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                  <h2>X Cookies 登录凭据配置</h2>
+                </div>
+                <div id="cred-status-indicator" class="status-tag inactive">
+                  <span class="tag-dot"></span>
+                  <span id="cred-status-text">未登录 X 账号</span>
+                </div>
+              </div>
+
+              <!-- Credentials Loading State Skeleton Mask -->
+              <div id="cred-loading-skeleton" class="cred-loading-skeleton">
+                <div class="skeleton-spinner"></div>
+                <span>正在获取 X 账号凭据状态...</span>
+              </div>
+
+              <!-- Active Logged-in X Account Card -->
+              <div id="x-cookie-account-box" class="x-cookie-account-card hidden">
+                <div class="x-account-left">
+                  <img id="x-account-avatar" class="x-account-avatar-img" src="https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png" alt="X Avatar">
+                  <div class="x-account-info">
+                    <div class="x-account-name-row">
+                      <span id="x-account-name" class="x-account-display-name">已绑定 X 账号</span>
+                      <span class="x-status-pill">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>凭据就绪</span>
+                      </span>
+                    </div>
+                    <span id="x-account-handle" class="x-account-screen-handle">@x_user</span>
+                  </div>
+                </div>
+
+                <div class="x-account-actions">
+                  <button id="btn-logout-x-account" class="btn-secondary-action btn-danger-full">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>登出账号</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cookie Form Wrapper -->
+              <div id="cookie-form-wrapper" class="hidden">
+                <div class="guide-banner">
+                  <div class="guide-head">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <span>凭据获取指引：</span>
+                  </div>
+                  <div class="guide-content">登录 <a href="https://x.com" target="_blank" style="color:var(--accent-primary); text-decoration:underline;">x.com</a> 后按 <code>F12</code> 打开开发者工具 → Application → Cookies 复制 <code>ct0</code> 与 <code>auth_token</code>。</div>
+                </div>
+
+                <form id="vault-cookie-form" onsubmit="return false;">
+                  <div class="fields-row-2">
+                    <div class="field-group">
+                      <label for="input-ct0"><code>ct0</code> (CSRF Token)</label>
+                      <input type="text" id="input-ct0" required placeholder="例如: 9f8a7b6c5d4e3f2a..." autocomplete="off">
+                    </div>
+
+                    <div class="field-group">
+                      <label for="input-auth-token"><code>auth_token</code></label>
+                      <input type="password" id="input-auth-token" required placeholder="例如: 403db3f572bc45a..." autocomplete="off">
+                    </div>
+                  </div>
+
+                  <div class="form-actions-bar">
+                    <label class="remember-checkbox-label">
+                      <input type="checkbox" id="chk-remember-cred" checked>
+                      <span>在本地安全记住凭据</span>
+                    </label>
+
+                    <div style="display: flex; gap: 10px;">
+                      <button type="button" id="btn-clear-cred" class="btn-secondary-action">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        <span>清空</span>
+                      </button>
+                      <button type="button" id="btn-save-cred" class="btn-primary-action">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                        <span>校验并登录 X</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="cred-form-msg" class="auth-error-banner hidden" style="margin-top: 14px;"></div>
+                </form>
+              </div>
+
+            </section>
+
+            <!-- Panel 2: Smart Sync Engine & Full-Width Terminal -->
+            <section class="vault-panel-card" id="panel-sync">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  <h2>关注列表增量同步引擎</h2>
+                </div>
+              </div>
+
+              <!-- 同步进来的新博主默认可见性。
+                   默认「仅站长可见」：同步是批量拉进来的，先落成私密由站长挑选后再公开，
+                   比事后一个一个点「全站下架」好 —— 下架是全局的，会连带影响后来
+                   收录同一位博主的其他用户。 -->
+              <label class="sync-visibility-toggle" for="sync-default-visibility">
+                <span class="svt-label">同步进来的新博主</span>
+                <select id="sync-default-visibility">
+                  <option value="private">先设为仅站长可见（推荐，之后在下方档案管理里挑着公开）</option>
+                  <option value="public">直接公开到画廊</option>
+                </select>
+              </label>
+
+              <!-- 每批多少位：Cloudflare Free 每次 Worker 调用只有 50 次 D1 查询额度，
+                   而每位博主约 8 次 —— 所以 Free 上必须设成 5。本地/Paid 可以调大，
+                   批越大总请求数越少、越快。 -->
+              <!-- 查询预算：Cloudflare Free 每次 Worker 调用只有 50 次 D1 查询，
+                   所以默认 42（留 8 次给状态读写）。Workers Paid 是 1000，可以调大。
+                   新博主约 8 次查询、已在库的跳过只花 1 次 —— 所以按预算扣比按人数准。 -->
+              <label class="sync-visibility-toggle" for="sync-budget">
+                <span class="svt-label">每批查询预算</span>
+                <select id="sync-budget">
+                  <option value="42" selected>42（Cloudflare 免费版必须用这个）</option>
+                  <option value="200">200（Workers Paid）</option>
+                  <option value="800">800（本地，最快）</option>
+                </select>
+              </label>
+
+              <div class="sync-action-row">
+                <button id="btn-trigger-sync" class="btn-primary-action">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <span>增量同步</span>
+                </button>
+                <button id="btn-trigger-sync-full" class="btn-ghost-sm" type="button" title="走完整个关注列表，已在库的快速跳过。用于补历史或强制完整核对">
+                  <span>完整核对</span>
+                </button>
+                <button id="btn-stop-sync" class="btn-ghost-sm hidden" type="button"><span>停止</span></button>
+
+                <!-- Sync Live Progress Bar (Inline Docked) -->
+                <div id="sync-progress-box" class="sync-progress-box-inline">
+                  <div class="sync-progress-header">
+                    <span id="sync-progress-status-text">增量同步引擎待命中</span>
+                    <span id="sync-progress-count-text" style="font-family: var(--font-mono); color: var(--text-muted);">准备就绪</span>
+                  </div>
+                  <div class="sync-progress-track">
+                    <div id="sync-progress-fill" class="sync-progress-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 320px 宽幅极客终端 (Permanently visible) -->
+              <div id="terminal-log-container" class="terminal-log-box is-expanded">
+                <div class="terminal-top">
+                  <span class="t-dot red"></span>
+                  <span class="t-dot yellow"></span>
+                  <span class="t-dot green"></span>
+                  <span class="t-title">SYNC ENGINE REALTIME LOG</span>
+                </div>
+                <div id="terminal-log-output" class="terminal-content">> Engine ready. Waiting for command.</div>
+              </div>
+
+            </section>
+
+          </div>
+
+          <!-- 【右侧 38% 区域】：数据资产灾备 + 基础设施规格 -->
+          <div class="bento-col-side">
+            
+            <!-- Panel 3: Data Management, Backup & Cloud Actions -->
+            <section class="vault-panel-card" id="panel-data-management">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <h2>数据灾备与云端任务</h2>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- 1. GitHub Actions 离线任务调度 -->
+                <div class="action-subgroup">
+                  <div class="action-subgroup-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>GitHub Actions 离线任务 (脱机慢速)</span>
+                  </div>
+
+                  <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button id="btn-trigger-gh-full-sync" class="btn-primary-action full-w btn-task-card">
+                      <div class="btn-task-content">
+                        <div class="btn-task-title-row">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                          <span>派发全量数据深度刷新</span>
+                        </div>
+                        <span class="btn-task-desc">云端后台逐页慢速巡检全量博主，刷新资料与 R2 缓存</span>
+                      </div>
+                    </button>
+
+                    <a href="https://github.com/akudamatata/Nv-Pu-Sa/actions" target="_blank" rel="noopener noreferrer" class="link-actions-status">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      <span>在 GitHub 中查看 Actions 实时运行日志 ↗</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div style="height: 1px; background: var(--border-subtle);"></div>
+
+                <!-- 2. 本地 JSON 灾备 -->
+                <div class="action-subgroup">
+                  <div class="action-subgroup-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>本地数据快照</span>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button id="btn-export-json" class="btn-secondary-action full-w btn-sm">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span>导出 JSON</span>
+                    </button>
+                    <button id="btn-import-json" class="btn-secondary-action full-w btn-sm">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      <span>导入恢复</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3. 高危操作 -->
+                <div class="danger-zone-card">
+                  <div class="danger-zone-head">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>高危维护操作</span>
+                  </div>
+                  <button id="btn-reset-d1" class="btn-secondary-action btn-danger-full full-w" style="margin-top: 6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>清空博主归档数据</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Panel 4: System Infrastructure -->
+            <section class="vault-panel-card">
+              <div class="panel-heading" style="margin-bottom: 14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+                <span class="shiny-gold" style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;">Infrastructure Specifications</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Deployment:</span>
+                  <span style="font-family: var(--font-mono); color: var(--text-main);">Cloudflare Pages (D1 + R2)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Runtime:</span>
+                  <span style="font-family: var(--font-mono); color: var(--text-main);">Node.js Express / Edge</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Database:</span>
+                  <span style="font-family: var(--font-mono); color: var(--accent-primary);">Cloudflare D1 (SQLite)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Storage:</span>
+                  <span style="font-family: var(--font-mono); color: var(--accent-spark);">Cloudflare R2 (10GB)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Sync Engine:</span>
+                  <span style="font-family: var(--font-mono); color: var(--accent-success);">GraphQL Edge Spider</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--text-muted);">Sync Mode:</span>
+                  <span style="font-family: var(--font-mono); color: var(--accent-primary);">Smart Incremental</span>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB PANE 2: 博主档案管理 (Blogger Vault Management) ==================== -->
+      <div id="tab-pane-bloggers" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-bloggers">
+        
+        <section class="vault-panel-card blogger-vault-panel" id="panel-bloggers">
+          <div class="panel-header-line">
+            <div class="panel-heading">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <h2>博主档案管理</h2>
+            </div>
+            <div class="panel-header-actions">
+              <button id="btn-add-blogger" class="btn-primary-action btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>添加博主</span>
+              </button>
+              <button id="btn-refetch-avatars" class="btn-secondary-action btn-sm" title="为缺图的档案重新去 X 抓取头像">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span>补回头像</span>
+                <span id="refetch-missing-badge" class="pill-badge hidden">0</span>
+              </button>
+              <button id="btn-export-handles" class="btn-secondary-action btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>导出 Handle 清单</span>
+              </button>
+              <button id="btn-refresh-bloggers" class="btn-secondary-action btn-sm" title="刷新列表">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                <span>刷新</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar: Search, Filter Tabs, Sorter -->
+          <div class="blogger-vault-toolbar">
+            <!-- Search Box -->
+            <div class="blogger-search-wrapper">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="blogger-search-input" placeholder="搜索博主昵称 / @Handle / Bio 简介..." autocomplete="off">
+              <button id="btn-clear-blogger-search" class="clear-search-btn hidden" aria-label="清空搜索">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <!-- Filter Tabs (React Bits CountUp) -->
+            <div class="blogger-filter-tabs">
+              <button class="filter-tab-btn active" data-status="all">
+                <span>全部</span>
+                <span class="tab-badge" id="tab-count-all">0</span>
+              </button>
+              <button class="filter-tab-btn" data-status="in_gallery" title="此刻真正出现在公开画廊里的（未屏蔽 且 至少一条公开归属）">
+                <span>画廊可见</span>
+                <span class="tab-badge active" id="tab-count-active">0</span>
+              </button>
+              <button class="filter-tab-btn" data-status="private" title="你收录了但设为「仅站长可见」的。同步进来的新博主默认落在这里">
+                <span>待公开</span>
+                <span class="tab-badge private" id="tab-count-private">0</span>
+              </button>
+              <button class="filter-tab-btn" data-status="blocked" title="全站下架：对所有人生效，别人收录同一位博主也进不了画廊">
+                <span>已屏蔽</span>
+                <span class="tab-badge blocked" id="tab-count-blocked">0</span>
+              </button>
+            </div>
+
+            <!-- Sort Dropdown (Custom UI Dropdown) -->
+            <div class="custom-select-box blogger-sort-select-box" id="blogger-sort-select-box">
+              <button class="select-trigger-btn blogger-sort-trigger-btn" id="blogger-sort-trigger-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <svg class="sort-prefix-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>
+                <span id="blogger-sort-current-text">最新归档优先</span>
+                <svg class="arrow-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div class="select-dropdown-menu hidden" id="blogger-sort-menu" role="listbox">
+                <div class="menu-item active" data-val="backed_up_at_desc" role="option">
+                  <span>最新归档优先</span>
+                  <svg class="check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="backed_up_at_asc" role="option">
+                  <span>最早归档优先</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="clicks_desc" role="option">
+                  <span>热度由高到低</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="clicks_asc" role="option">
+                  <span>热度由低到高</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="followers_desc" role="option">
+                  <span>粉丝量由高到低</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="followers_asc" role="option">
+                  <span>粉丝量由低到高</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="menu-item" data-val="name_asc" role="option">
+                  <span>博主昵称 A-Z</span>
+                  <svg class="check-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blogger List Container with Spotlight Glow -->
+          <div id="blogger-list-container" class="blogger-list-container">
+            <div class="blogger-list-loading">
+              <div class="skeleton-spinner"></div>
+              <span>正在加载博主资产库...</span>
+            </div>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="blogger-pagination-bar" id="blogger-pagination-bar">
+            <div class="pagination-info" id="blogger-pagination-info">
+              显示 0 - 0 / 共 0 位博主
+            </div>
+            <div class="pagination-controls">
+              <button id="btn-page-prev" class="btn-page-action" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>上一页</span>
+              </button>
+              <span class="page-current-indicator" id="blogger-page-indicator">第 1 / 1 页</span>
+              <button id="btn-page-next" class="btn-page-action" disabled>
+                <span>下一页</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ==================== TAB PANE 3: 数据统计分析 (Data Statistics & Analytics) ==================== -->
+      <div id="tab-pane-analytics" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-analytics">
+        
+        <!-- 6 联排核心 KPI Bento 指标卡片 -->
+        <section class="analytics-kpi-grid">
+          <!-- KPI 1: 全站累计点击跳转 -->
+          <div class="kpi-card highlight-glow">
+            <div class="kpi-icon-wrap icon-flame">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-value" id="kpi-val-clicks">0</span>
+              <span class="kpi-label">本站全场景点击跳转</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: 总归档博主数 -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-value" id="kpi-val-total">0</span>
+              <span class="kpi-label">归档博主总人数</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: 全网总粉丝覆盖 -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-gold">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-value" id="kpi-val-followers">0</span>
+              <span class="kpi-label">全网总粉丝覆盖规模</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: 产生点击的活跃博主 -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-emerald">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-value" id="kpi-val-active-creators">0</span>
+              <span class="kpi-label">受访互动博主数</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: 蓝标官方认证率 -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-cyan">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-value" id="kpi-val-verified-rate">0%</span>
+              <span class="kpi-label">X 官方认证比例</span>
+            </div>
+          </div>
+
+          <!-- KPI 6: R2 对象存储媒体数 -->
+          <div class="kpi-card">
+            <div class="kpi-icon-wrap icon-purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-value" id="kpi-val-r2-count">0</span>
+              <span class="kpi-label">R2 高清图片冷备</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analytics Visualizations Bento Grid -->
+        <div class="analytics-bento-layout">
+          
+          <!-- Row 1: Left (本站点击热度 TOP 10) + Right (点击来源渠道分布饼图) -->
+          <div class="analytics-row-split">
+            
+            <!-- Left: 本站点击热度 TOP 10 榜单 -->
+            <section class="vault-panel-card analytics-card flex-1">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-spark)" stroke-width="2.2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                  <h2>本站博主点击热度 TOP 10 榜</h2>
+                </div>
+                <span class="analytics-tag-pill spark">全站综合交互</span>
+              </div>
+              <p class="analytics-card-desc">统计访客在画廊卡片、时光档案与抽卡探索等场景中的累计点击跳转</p>
+              
+              <div class="leaderboard-list-container" id="analytics-click-top-list">
+                <div class="blogger-list-loading">
+                  <div class="skeleton-spinner"></div>
+                  <span>正在计算博主点击热度...</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Right: 点击来源场景贡献分布 (Doughnut) -->
+            <section class="vault-panel-card analytics-card side-card">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                  <h2>点击场景来源占比</h2>
+                </div>
+                <span class="analytics-tag-pill primary">渠道拆解</span>
+              </div>
+              <p class="analytics-card-desc">对比画廊卡片、时光变迁与抽卡界面的点击贡献比例</p>
+
+              <div class="chart-canvas-wrap doughnut-wrap">
+                <canvas id="chart-click-sources" height="200"></canvas>
+              </div>
+
+              <!-- Custom Styled Legend Bar -->
+              <div class="custom-chart-legend" id="chart-sources-legend">
+                <div class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span><span>画廊卡片: <b id="leg-val-card">0%</b></span></div>
+                <div class="legend-item"><span class="legend-dot" style="background:#a855f7;"></span><span>时光抽屉: <b id="leg-val-timeline">0%</b></span></div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ec4899;"></span><span>抽卡探索: <b id="leg-val-roulette">0%</b></span></div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Row 2: Left (全网粉丝总榜 TOP 10) + Right (粉丝量级梯度分布柱状图) -->
+          <div class="analytics-row-split">
+            
+            <!-- Left: 全网粉丝规模 TOP 10 榜单 -->
+            <section class="vault-panel-card analytics-card flex-1">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <h2>全网粉丝规模 TOP 10 领奖台</h2>
+                </div>
+                <span class="analytics-tag-pill gold">创作者影响力</span>
+              </div>
+              <p class="analytics-card-desc">按 X 官方公开粉丝量排序的头部创作者排行榜</p>
+              
+              <div class="leaderboard-list-container" id="analytics-followers-top-list">
+                <div class="blogger-list-loading">
+                  <div class="skeleton-spinner"></div>
+                  <span>正在检索全网粉丝榜...</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Right: 粉丝量级梯度分布 (Horizontal Bar) -->
+            <section class="vault-panel-card analytics-card side-card">
+              <div class="panel-header-line">
+                <div class="panel-heading">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-success)" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  <h2>粉丝量级梯度分层</h2>
+                </div>
+                <span class="analytics-tag-pill emerald">梯队结构</span>
+              </div>
+              <p class="analytics-card-desc">展示从超头部 (≥1M) 到潜力博主的人数分层分布</p>
+
+              <div class="chart-canvas-wrap bar-wrap">
+                <canvas id="chart-follower-tiers" height="220"></canvas>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Row 3: 账号健康度与蓝V分布 (Doughnut & Cards) -->
+          <section class="vault-panel-card analytics-card">
+            <div class="panel-header-line">
+              <div class="panel-heading">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <h2>博主资产健康度与官方认证画像</h2>
+              </div>
+              <span class="analytics-tag-pill cyan">资产风控</span>
+            </div>
+
+            <div class="health-breakdown-grid">
+              <div class="health-chart-col">
+                <div class="chart-canvas-wrap doughnut-wrap" style="height: 180px;">
+                  <canvas id="chart-account-health" height="180"></canvas>
+                </div>
+              </div>
+
+              <div class="health-cards-col">
+                <div class="health-stat-pill active">
+                  <div class="pill-indicator dot-green"></div>
+                  <div class="pill-text">
+                    <span class="pill-title">正常展示中</span>
+                    <span class="pill-val" id="health-val-active">0 人</span>
+                  </div>
+                </div>
+
+                <div class="health-stat-pill blocked">
+                  <div class="pill-indicator dot-red"></div>
+                  <div class="pill-text">
+                    <span class="pill-title">画廊已屏蔽</span>
+                    <span class="pill-val" id="health-val-blocked">0 人</span>
+                  </div>
+                </div>
+
+                <div class="health-stat-pill suspended">
+                  <div class="pill-indicator dot-yellow"></div>
+                  <div class="pill-text">
+                    <span class="pill-title">X 官方封号 / 注销</span>
+                    <span class="pill-val" id="health-val-suspended">0 人</span>
+                  </div>
+                </div>
+
+                <div class="health-stat-pill verified">
+                  <div class="pill-indicator dot-blue"></div>
+                  <div class="pill-text">
+                    <span class="pill-title">X 蓝标认证创作者</span>
+                    <span class="pill-val" id="health-val-verified">0 人</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB PANE 4: 发布公告 ====================
+           公告会显示在每个访客页面顶部的横幅里。**发布权限只在管理台** ——
+           普通登录用户没有任何写入入口。
+           正文只存纯文本、前端 escapeHtml 渲染：公告出现在所有访客页面上，
+           允许 HTML 就等于给全站开一个存储型 XSS 面。 -->
+      <div id="tab-pane-announcements" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-announcements">
+        <section class="vault-panel-card">
+          <div class="panel-header-line">
+            <div class="panel-heading">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+              <h2>发布公告</h2>
+            </div>
+            <button class="btn-ghost-sm" id="btn-refresh-ann" type="button">刷新</button>
+          </div>
+
+          <p class="panel-hint">
+            公告显示在首页、我的收录、我的收藏三个页面顶部的横幅里。访客可以关掉某一条；
+            <strong>你改了正文之后它会重新出现</strong>（关闭状态按内容版本记录）。
+            正文只支持纯文本与自动识别的链接，不支持 HTML。
+          </p>
+
+          <form class="ann-form" id="form-ann" autocomplete="off">
+            <input type="hidden" id="ann-edit-id" value="">
+            <div class="ann-form-row">
+              <input type="text" id="ann-title" placeholder="标题（可留空）" maxlength="80">
+              <select id="ann-level">
+                <option value="info">普通（蓝）</option>
+                <option value="warn">提醒（黄）</option>
+                <option value="urgent">重要（红）</option>
+              </select>
+            </div>
+            <textarea id="ann-body" rows="4" maxlength="2000"
+                      placeholder="公告正文。可以换行，链接会自动识别。最长 2000 字。"></textarea>
+            <div class="ann-form-row">
+              <label class="ann-time">
+                <span>开始显示</span>
+                <input type="datetime-local" id="ann-starts">
+              </label>
+              <label class="ann-time">
+                <span>自动下线</span>
+                <input type="datetime-local" id="ann-ends">
+              </label>
+            </div>
+            <div class="ann-form-row ann-form-actions">
+              <label class="ann-check"><input type="checkbox" id="ann-pinned"><span>置顶（横幅优先显示，且每次刷新 / 重开都会再出现）</span></label>
+              <span style="flex:1"></span>
+              <button type="button" class="btn-ghost-sm hidden" id="btn-ann-cancel">取消编辑</button>
+              <button type="submit" class="btn-primary-action" id="btn-ann-submit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>发布</span>
+              </button>
+            </div>
+            <p class="ann-hint-time">两个时间都留空 = 立即生效、永不过期。</p>
+          </form>
+
+          <div class="ann-admin-list" id="ann-admin-list">
+            <div class="blogger-list-empty"><span>加载中...</span></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ==================== TAB PANE 5: 投稿记录 ====================
+           首页的投稿是「无审核，提交即收录」。不审核是产品决定，但站长总得有个
+           地方看见都进了什么、谁在刷、被拒的是哪些 —— 否则唯一的发现途径是
+           有人投了脏东西之后自己在画廊里翻出来。
+           这个 Tab 和它背后的 /api/admin/submissions 此前都不存在。 -->
+      <div id="tab-pane-submissions" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-submissions">
+        <section class="vault-panel-card">
+          <div class="panel-header-line">
+            <div class="panel-heading">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.17L4 17.17V4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="12.5" x2="13" y2="12.5"/></svg>
+              <h2>公开投稿记录</h2>
+            </div>
+            <button class="btn-ghost-sm" id="btn-refresh-submissions" type="button">刷新</button>
+          </div>
+
+          <p class="panel-hint">
+            首页投稿无需审核，提交即收录。这里能看到全部提交结果。
+            <strong>撞限流的请求不落库</strong>（直接返回 429），所以这份记录里看不到被限流的次数。
+          </p>
+
+          <div class="sub-stats" id="sub-stats"></div>
+
+          <div class="blogger-filter-tabs" id="sub-filter-tabs">
+            <button class="filter-tab-btn active" data-substatus="">全部</button>
+            <button class="filter-tab-btn" data-substatus="accepted">已收录</button>
+            <button class="filter-tab-btn" data-substatus="duplicate">重复</button>
+            <button class="filter-tab-btn" data-substatus="rejected">被拒</button>
+            <button class="filter-tab-btn" data-substatus="failed">失败</button>
+          </div>
+
+          <div class="sub-list" id="sub-list">
+            <div class="blogger-list-empty"><span>加载中...</span></div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- Export Handles Modal -->
+    <div id="modal-export-handles" class="inspector-backdrop hidden">
+      <div class="auth-card-window" style="max-width: 560px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">博主 Handle 资产导出</h3>
+          </div>
+          <button class="drawer-close-btn btn-close-modal" id="btn-close-export-modal" aria-label="关闭">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          当前筛选条件下的博主 Handle 清单（每行一个），可用于换号备份或批量回关：
+        </p>
+        <div class="terminal-log-box" style="margin-top: 0;">
+          <textarea id="export-handles-textarea" readonly class="terminal-content" style="width: 100%; height: 200px; background: transparent; border: none; resize: none; color: var(--accent-spark); font-family: var(--font-mono); font-size: 12.5px; outline: none;"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+          <button type="button" id="btn-copy-export-handles" class="btn-primary-action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+            <span>一键复制全部 Handle</span>
+          </button>
+          <button type="button" class="btn-secondary-action btn-close-modal">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加博主档案 -->
+    <div id="modal-add-blogger" class="inspector-backdrop hidden">
+      <div class="auth-card-window" style="max-width: 480px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">添加博主档案</h3>
+          </div>
+          <button class="drawer-close-btn btn-close-modal" aria-label="关闭">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6;">
+          填入 handle 即可，昵称、简介、粉丝数、头像与 Banner 会自动从 X 抓取并归档。
+        </p>
+        <form id="form-add-blogger" onsubmit="return false;">
+          <label for="input-add-handle" style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px;">博主 Handle</label>
+          <input type="text" id="input-add-handle" placeholder="例如: karpathy 或 https://x.com/karpathy"
+                 autocomplete="off" spellcheck="false"
+                 style="width:100%; padding:11px 13px; background:var(--bg-chip); border:1px solid var(--border-medium); border-radius:11px; color:var(--text-main); font-size:14px; font-family:inherit;">
+          <div id="add-blogger-result" class="hidden" style="margin-top:14px; padding:11px 13px; border-radius:10px; font-size:13px; line-height:1.6;"></div>
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+            <button type="button" class="btn-secondary-action btn-close-modal">取消</button>
+            <button type="submit" id="btn-submit-add-blogger" class="btn-primary-action">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>抓取并归档</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 补回头像 -->
+    <div id="modal-refetch" class="inspector-backdrop hidden">
+      <div class="auth-card-window" style="max-width: 620px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">补回缺失的头像</h3>
+          </div>
+          <button class="drawer-close-btn btn-close-modal" aria-label="关闭">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6;">
+          从旧站继承的档案只留了失效的图片指针，需要重新去 X 抓一份存进自己的 R2。
+          <strong style="color: var(--text-secondary);">已被封号的账号取不回头像</strong>，会自动标记进赛博坟场。
+        </p>
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px; flex-wrap:wrap;">
+          <div style="font-size:13px; color:var(--text-secondary);">
+            待补：<strong id="refetch-remaining" style="color:var(--accent-gold); font-family:var(--font-mono);">—</strong>
+          </div>
+          <div style="font-size:13px; color:var(--text-secondary);">
+            已补回：<strong id="refetch-done" style="color:var(--accent-success); font-family:var(--font-mono);">0</strong>
+          </div>
+          <div style="font-size:13px; color:var(--text-secondary);">
+            墓碑：<strong id="refetch-tomb" style="color:var(--text-muted); font-family:var(--font-mono);">0</strong>
+          </div>
+        </div>
+        <div class="sync-progress-track" style="margin-bottom:12px;">
+          <div class="sync-progress-fill" id="refetch-progress-fill" style="width:0%;"></div>
+        </div>
+        <div class="terminal-log-box" style="margin-top:0;">
+          <pre id="refetch-log" class="terminal-content" style="height:200px; overflow-y:auto; margin:0; white-space:pre-wrap; word-break:break-all;">> 点击「开始补图」后在此显示实时进度</pre>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+          <button type="button" class="btn-secondary-action btn-close-modal">关闭</button>
+          <button type="button" id="btn-stop-refetch" class="btn-secondary-action hidden">停止</button>
+          <button type="button" id="btn-start-refetch" class="btn-primary-action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>开始补图</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden file input for JSON import -->
+    <input type="file" id="file-input-backup" accept=".json" class="hidden">
+
+    <!-- Toast Notification Overlay -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- Minimal Modern Footer -->
+    <footer class="v2-footer">
+      <div class="footer-inner">
+        <div>
+          <span>X-符离集 · Admin Console</span>
+          <span class="dot-sep">·</span>
+          <span>Encrypted Session Gate</span>
+        </div>
+        <div>
+          <a href="/" class="footer-link">返回画廊</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="/admin.js?v=7688bd071a" type="module"></script>
+</body>
+</html>

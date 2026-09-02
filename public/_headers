@@ -1,0 +1,39 @@
+# Cloudflare Pages 响应头。
+#
+# 为什么必须有这个文件：Pages 对静态资源默认下发 `max-age=14400`（4 小时），
+# 而 `must-revalidate` 只在超过 max-age 之后才起作用 —— 也就是说 4 小时内浏览器
+# 根本不问服务器。结果是 index.html（max-age=0）是新的、app.js 是旧的，
+# 新 HTML 配旧 JS：按钮在页面上，但事件处理器压根没绑，点了毫无反应。
+#
+# 这个站没有构建步骤、文件名里没有内容哈希，所以只能靠 no-cache 强制每次校验。
+# no-cache 不等于不缓存：浏览器仍然缓存，只是每次带 If-None-Match 问一句，
+# 没变就回 304（几百字节），代价很小。
+
+# ⚠️ 只能用末尾 splat（/foo/*），`/*.js` 这种中间通配 Pages 不支持 —— 实测不生效。
+# 所以这里逐个文件列出。新增 js/css 文件时记得加进来。
+/app.js
+  Cache-Control: no-cache, must-revalidate
+/admin.js
+  Cache-Control: no-cache, must-revalidate
+/style.css
+  Cache-Control: no-cache, must-revalidate
+/
+  Cache-Control: no-cache, must-revalidate
+/index.html
+  Cache-Control: no-cache, must-revalidate
+/admin.html
+  Cache-Control: no-cache, must-revalidate
+
+# 快照是公开读的首选来源，管理台一改就该让访客看到
+/data/*.json
+  Cache-Control: no-cache, must-revalidate
+
+# 头像/封面走 /api/media，内容按 key 寻址、不会原地变，可以长缓存
+/api/media
+  Cache-Control: public, max-age=86400
+
+# 安全头（原站没有，顺手补上）
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN

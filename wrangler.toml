@@ -1,0 +1,29 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "x-vault"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "public"
+
+# ── D1: 博主归档、变更时间线、同步状态、配置
+# 首次使用: npm run db:create, 把返回的 database_id 填到下面
+[[d1_databases]]
+binding = "DB"
+database_name = "x-vault-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# ── R2: 头像与 banner 归档
+# 首次使用: npm run r2:create
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "x-vault-media"
+
+[vars]
+# GitHub 仓库, 用于派发全量刷新 workflow (owner/repo)
+GITHUB_REPO = ""
+# 全量刷新的 workflow 文件名
+GITHUB_WORKFLOW_FILE = "full-sync.yml"
+
+# ── Secrets: 不写在这里, 用 wrangler pages secret put <NAME> 设置
+#   ADMIN_PASSWORD_HASH   管理员密码 PBKDF2 哈希 (node scripts/hash-password.mjs 生成)
+#   SESSION_SECRET        会话令牌签名密钥
+#   CREDENTIAL_ENC_KEY    加密 X 凭据的 AES-GCM 密钥 (32 字节 base64)
+#   GITHUB_PAT            派发 workflow_dispatch 的 token (需 actions:write)

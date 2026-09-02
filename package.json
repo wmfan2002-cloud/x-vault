@@ -1,0 +1,30 @@
+{
+  "name": "x-vault",
+  "version": "1.0.0",
+  "private": true,
+  "description": "X 博主精选画廊 · 归档系统 — Cloudflare Pages + Functions + D1 + R2",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev public",
+    "db:create": "wrangler d1 create x-vault-db",
+    "db:migrate:local": "wrangler d1 execute x-vault-db --local --file=migrations/0001_init.sql",
+    "db:migrate": "wrangler d1 execute x-vault-db --remote --file=migrations/0001_init.sql",
+    "r2:create": "wrangler r2 bucket create x-vault-media",
+    "seed:local": "node scripts/seed-from-snapshot.mjs --local",
+    "seed": "node scripts/seed-from-snapshot.mjs --remote",
+    "snapshot": "node scripts/generate-snapshot.mjs",
+    "setup:local": "npm run db:migrate:local && npm run seed:local",
+    "deploy": "wrangler pages deploy public",
+    "lint": "eslint .",
+    "test": "node tests/test-uncollect.mjs && node tests/test-uncollect-ui.mjs",
+    "test:e2e": "node tests/e2e-uncollect.mjs",
+    "bump": "node scripts/bump-assets.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "globals": "^17.12.0",
+    "jsdom": "^30.0.1",
+    "wrangler": "4.127.1"
+  }
+}
