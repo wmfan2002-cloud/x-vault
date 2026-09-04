@@ -1,6 +1,8 @@
 /**
- * Nv-Pu-Sa (X-Archive) v2 - Admin Console & Vault Controller
- * Reactive Session Gate · X Credentials · Smart Sync Engine · JSON Backup
+ * X-符离集 (x-vault) — 管理控制台
+ *
+ * 会话门禁 · X 凭据 · 同步引擎（增量/完整核对，断点续跑）· 备份导出
+ * 公告管理 · 投稿记录 · 可见性与回收（撤出公开仓 vs 彻底删除）
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1447,6 +1449,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="blogger-row-right">
             <div class="blogger-row-meta">
               <span class="blogger-followers-pill">${formatFollowersCount(u.followers_count)} 粉丝</span>
+              ${(u.owner_count || 0) > 1 ? `<span class="blogger-owners-pill" title="含公开仓在内，共 ${u.owner_count} 人收录">${u.owner_count} 人收录</span>` : ''}
               <span class="blogger-backup-date">归档于 ${backupDate}</span>
             </div>
 
@@ -1484,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `}
               </button>
 
-              <button type="button" class="btn-action-icon btn-delete-blogger" data-handle="${escapeHtml(u.screen_name)}" data-name="${escapeHtml(u.name || '')}" title="彻底删除档案（不可恢复，区别于「屏蔽」）">
+              <button type="button" class="btn-action-icon btn-delete-blogger" data-handle="${escapeHtml(u.screen_name)}" data-name="${escapeHtml(u.name || '')}" data-owners="${u.owner_count || 0}" data-mine="${isPublic || isPrivate ? '1' : '0'}" title="彻底删除档案（不可恢复，区别于「屏蔽」）">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
               </button>
             </div>
@@ -1580,13 +1583,18 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const handle = btn.getAttribute('data-handle');
         const name = btn.getAttribute('data-name') || '';
+        const owners = parseInt(btn.getAttribute('data-owners') || '0', 10);
+        const mine = btn.getAttribute('data-mine') === '1';
         if (!handle) return;
 
+        const others = Math.max(owners - (mine ? 1 : 0), 0);
         const typed = prompt(
           `⚠️ 彻底删除 @${handle}${name ? `（${name}）` : ''} 的档案\n\n` +
           `会一并删除：点击统计、变更时间线、已归档的头像与 Banner。\n` +
           `此操作不可恢复。\n\n` +
-          `若只是不想让它出现在公开画廊，请改用「屏蔽」（档案会完整保留）。\n\n` +
+          (others > 0
+            ? `还有 ${others} 位用户收录着它。日常下架请改用左边的「撤出公开仓」，他们的私人收录会保留。\n彻底删除会把他们的收录一起毁掉。\n\n`
+            : `若只是不想让它出现在公开画廊，请改用「屏蔽」（档案会完整保留）。\n\n`) +
           `确认删除请输入：DELETE`
         );
         if (typed !== 'DELETE') {
@@ -1595,23 +1603,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         btn.disabled = true;
+        const send = (force) => fetch('/api/admin/blogger', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': adminSessionToken
+          },
+          body: JSON.stringify(force
+            ? { screen_name: handle, confirm: 'DELETE', force: true }
+            : { screen_name: handle, confirm: 'DELETE' })
+        }).then(r => r.json().then(json => ({ status: r.status, json })));
+
         try {
-          const res = await fetch('/api/admin/blogger', {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-admin-token': adminSessionToken
-            },
-            body: JSON.stringify({ screen_name: handle, confirm: 'DELETE' })
-          });
-          const json = await res.json();
-          if (json.success) {
-            showToast(json.message || `已删除 @${handle}`);
-            logTerminal(`[DELETED] 已彻底删除 @${handle} 的档案（丢失 ${json.deleted?.clicks_lost ?? 0} 次点击记录）`);
+          let res = await send(false);
+          if (res.status === 409 && res.json.code === 'others_own') {
+            const n = res.json.others ?? others;
+            const favn = res.json.favorites || 0;
+            const typedForce = prompt(
+              `还有 ${n} 位用户把 @${handle} 收录在自己名下` +
+              `${favn ? `，另有 ${favn} 条收藏` : ''}。\n` +
+              `彻底删除会把他们的收录一起毁掉。\n\n` +
+              `日常下架请取消，改用「撤出公开仓」。\n` +
+              `确认连带删除请输入：FORCE`
+            );
+            if (typedForce !== 'FORCE') {
+              if (typedForce !== null) showToast('确认短语不匹配，已取消');
+              btn.disabled = false;
+              return;
+            }
+            res = await send(true);
+          }
+          if (res.json.success) {
+            showToast(res.json.message || `已删除 @${handle}`);
+            const refs = res.json.deleted;
+            logTerminal(
+              `[DELETED] 已彻底删除 @${handle} 的档案` +
+              `（丢失 ${refs?.clicks_lost ?? 0} 次点击` +
+              `${refs?.owners_removed ? ` · ${refs.owners_removed} 条收录` : ''}` +
+              `${refs?.favorites_removed ? ` · ${refs.favorites_removed} 条收藏` : ''}）`
+            );
             updateHudArchiveCount();
             loadBloggerVault();
           } else {
-            showToast(`删除失败: ${json.error}`);
+            showToast(`删除失败: ${res.json.error}`);
             btn.disabled = false;
           }
         } catch (err) {
@@ -1670,7 +1704,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast(res.json.message || `已撤出 @${handle}`);
             logTerminal(res.json.reclaimed
               ? `[RELEASED] 已撤出 @${handle}，无人再引用，归档数据一并回收`
-              : `[RELEASED] 已把 @${handle} 撤出公开仓（他人的收录保留）`);
+              : `[RELEASED] 已把 @${handle} 撤出公开仓（他人收录 ${res.json.refs?.owners ?? 0} · 收藏 ${res.json.refs?.favorites ?? 0}）`);
             updateHudArchiveCount();
             loadBloggerVault();
           } else {

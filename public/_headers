@@ -28,6 +28,17 @@
 /data/*.json
   Cache-Control: no-cache, must-revalidate
 
+# 图标。logo-icon.png 有内容哈希版本戳（bump-assets 会打），本可长缓存，
+# 但它同时被 functions/admin.js 里的登录页硬编码引用（那处不打戳），所以统一 no-cache。
+# favicon.ico 与 apple-touch-icon 是浏览器按固定路径主动请求的，带查询串它们不认，
+# 只能靠这里的 no-cache —— 否则换了图标你自己都看不到变化（favicon 缓存比 js/css 顽固得多）。
+/logo-icon.png
+  Cache-Control: no-cache, must-revalidate
+/favicon.ico
+  Cache-Control: no-cache, must-revalidate
+/apple-touch-icon.png
+  Cache-Control: no-cache, must-revalidate
+
 # 头像/封面走 /api/media，内容按 key 寻址、不会原地变，可以长缓存
 /api/media
   Cache-Control: public, max-age=86400

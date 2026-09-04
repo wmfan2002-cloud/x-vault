@@ -18,7 +18,8 @@ bucket_name = "x-vault-media"
 
 [vars]
 # GitHub 仓库, 用于派发全量刷新 workflow (owner/repo)
-GITHUB_REPO = ""
+# 与管理台「在 GitHub 中查看 Actions」那个链接指向同一个仓库, 改这里记得一起改
+GITHUB_REPO = "wmfan2002-cloud/x-vault"
 # 全量刷新的 workflow 文件名
 GITHUB_WORKFLOW_FILE = "full-sync.yml"
 

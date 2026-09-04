@@ -313,9 +313,12 @@ export async function countRefs(db, bloggerId) {
  * 物理删除一条归档行及其全部附属数据。**调用方负责先确认没人还在用。**
  *
  * D1 默认不强制外键，声明了 ON DELETE CASCADE 也不会真的级联，
- * 所以七张表必须逐张显式删。漏掉哪张就留孤儿行 —— blogger_owners 尤其要紧：
+ * 所以关联表必须逐张显式处理。漏掉哪张就留孤儿行 —— blogger_owners 尤其要紧：
  * 留着的话同一位博主日后被重新收录（X 的 userId 稳定不变）会直接继承旧归属，
  * 包括别人设过的可见性。
+ *
+ * submissions 是例外：那是投稿/限流事件日志（按 ip_hash 与 handle 计数），
+ * 删行会绕过冷却。只把 blogger_id 置空，断开悬空指针。
  */
 export async function purgeBlogger(db, bloggerId, { media = null, avatarKey = null, coverKey = null } = {}) {
   // 先删 R2 对象。失败不阻断 —— 留下孤儿对象比留下孤儿数据库行好处理。
@@ -331,6 +334,7 @@ export async function purgeBlogger(db, bloggerId, { media = null, avatarKey = nu
     db.prepare('DELETE FROM blogger_owners     WHERE blogger_id = ?').bind(bloggerId),
     db.prepare('DELETE FROM favorites          WHERE blogger_id = ?').bind(bloggerId),
     db.prepare('DELETE FROM blogger_tags       WHERE blogger_id = ?').bind(bloggerId),
+    db.prepare('UPDATE submissions SET blogger_id = NULL WHERE blogger_id = ?').bind(bloggerId),
     db.prepare('DELETE FROM bloggers           WHERE id = ?').bind(bloggerId),
   ]);
   return { mediaDeleted };

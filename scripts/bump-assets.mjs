@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 给 app.js / admin.js / style.css 的引用加内容哈希版本戳。
+ * 给 app.js / admin.js / style.css / logo-icon.png 的引用加内容哈希版本戳。
  *
  * 为什么必须这么做：Cloudflare 区域级的 **Browser Cache TTL** 会覆盖源站的
  * Cache-Control。免费版默认 4 小时（max-age=14400），且只作用于 js/css ——
@@ -11,8 +11,13 @@
  * 但拦不住 Cloudflare 的覆盖。改 URL 才是唯一不依赖任何 CDN 设置的办法 ——
  * 内容一变 URL 就变，旧缓存自然失效。
  *
+ * 图标也在列：favicon 的浏览器缓存比 js/css 更顽固，硬刷新经常都不管用，
+ * 换了图不打戳很可能你自己都看不到变化。
+ * （`favicon.ico` 和 `apple-touch-icon.png` 不打戳 —— 浏览器按固定路径主动请求，
+ *   带查询串它们不认。那两个靠 _headers 的 no-cache 兜。）
+ *
  * 用法: node scripts/bump-assets.mjs
- * 改完 app.js / admin.js / style.css 后跑一次；npm run dev / deploy 之前也该跑。
+ * 改完上面任何一个文件后跑一次；npm run dev / deploy 之前也该跑。
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -21,8 +26,13 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUB = resolve(ROOT, 'public');
-const ASSETS = ['app.js', 'admin.js', 'style.css'];
+const ASSETS = ['app.js', 'admin.js', 'style.css', 'logo-icon.png'];
 const PAGES = ['index.html', 'admin.html'];
+
+// href 用于 <link>，src 用于 <script>/<img>。图标两种都出现（favicon 是 link，
+// 头部品牌位是 img），所以按属性名逐个试而不是按扩展名二选一。
+const ATTRS = { '.css': ['href'], '.js': ['src'], '.png': ['href', 'src'] };
+const attrsFor = (f) => ATTRS[f.slice(f.lastIndexOf('.'))] || ['src'];
 
 const hash = (f) => createHash('md5').update(readFileSync(resolve(PUB, f))).digest('hex').slice(0, 10);
 const stamps = Object.fromEntries(ASSETS.map((a) => [a, hash(a)]));
@@ -34,14 +44,15 @@ for (const page of PAGES) {
   const before = s;
 
   for (const [asset, h] of Object.entries(stamps)) {
-    const attr = asset.endsWith('.css') ? 'href' : 'src';
-    // 匹配 src="/app.js"、src="app.js"、src="./app.js"，带不带 ?v= 都行。
-    // ⚠️ 原站写的是 `/app.js?v=2.2`（有前导斜杠，版本号还是 2.2 这种非十六进制），
-    // 早先的正则两点都没考虑到，静默匹配不上、一个字都没改。
-    s = s.replace(
-      new RegExp(`(${attr}=")(\\.?/?)${asset.replace('.', '\\.')}(\\?v=[^"]*)?(")`, 'g'),
-      `$1$2${asset}?v=${h}$4`
-    );
+    for (const attr of attrsFor(asset)) {
+      // 匹配 src="/app.js"、src="app.js"、src="./app.js"，带不带 ?v= 都行。
+      // ⚠️ 原站写的是 `/app.js?v=2.2`（有前导斜杠，版本号还是 2.2 这种非十六进制），
+      // 早先的正则两点都没考虑到，静默匹配不上、一个字都没改。
+      s = s.replace(
+        new RegExp(`(${attr}=")(\\.?/?)${asset.replace(/\./g, '\\.')}(\\?v=[^"]*)?(")`, 'g'),
+        `$1$2${asset}?v=${h}$4`
+      );
+    }
   }
   if (s !== before) { writeFileSync(p, s); changed++; }
   console.log(`  ${page} ${s !== before ? '已更新' : '无变化'}`);

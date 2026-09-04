@@ -116,6 +116,11 @@ own(U1, 'b-pub', 'public');  // U1 也收录了它 —— 测"个人走人，公
 mkBlogger('b-solo', 'soloblogger', { avatar: 'avatars/b-solo.jpg' });
 mkHistory('b-solo', 'soloblogger'); mkSnapshot('b-solo');
 own(U1, 'b-solo', 'public');
+// 投稿日志：回收时**不能删行**（它同时是限流与冷却的依据），只该把 blogger_id 断开
+sqlite.prepare(
+  `INSERT INTO submissions (screen_name, status, reason, blogger_id, ip_hash, created_at)
+   VALUES ('soloblogger', 'accepted', NULL, 'b-solo', 'ab12cd34', ?)`
+).run(NOW);
 
 mkBlogger('b-fav', 'favblogger', { avatar: 'avatars/b-fav.jpg', cover: 'covers/b-fav.jpg' });
 own(U1, 'b-fav', 'public'); fav(U2, 'b-fav'); tag(U2, 't-u2-fav', 'b-fav', 'U2的标签');
@@ -163,6 +168,12 @@ for (const [t, where] of [['bloggers', 'id'], ['blogger_owners', 'blogger_id'], 
   eq(q1(`SELECT COUNT(*) n FROM ${t} WHERE ${where}='b-solo'`).n, 0, `${t} 无残留`);
 }
 eq(r2Deleted.includes('avatars/b-solo.jpg'), true, 'R2 头像已删');
+// submissions 是唯一"留行只断指针"的表：删行等于把限流窗口清零，谁都能借回收绕过冷却
+const sub = q1(`SELECT status, ip_hash, created_at, blogger_id FROM submissions WHERE screen_name='soloblogger'`);
+eq(!!sub, true, '投稿日志行保留（限流依据不能被回收清掉）');
+eq(sub.blogger_id, null, '悬空的 blogger_id 已置空');
+eq([sub.status, sub.ip_hash, sub.created_at], ['accepted', 'ab12cd34', NOW], '其余字段未被改动');
+eq((await countRefs(env.DB, 'b-solo')).unused, true, '只剩一条投稿记录 -> 仍算无人引用（投稿是事件，不是持有者）');
 
 // ══ 3. 收藏也算引用；最后一个引用消失才回收 ══
 console.log('\n[3] 收藏是引用：还有人收藏就留');
@@ -215,6 +226,16 @@ mkBlogger('b-purge', 'purgeme'); own(U1, 'b-purge', 'private');
 r = await j(await admDelete({ request: req('DELETE', '/api/admin/blogger', { screen_name: 'purgeme', confirm: 'DELETE' }, adminTok), env }));
 eq(r.status, 409, 'purge 撞上他人收录 -> 409 挡住（公开仓并没收录它，admin 只能 force 或让用户自己删）');
 eq(r.success, false, '不放行');
+// 409 要带结构化字段，否则管理台只能把开发者文案原样弹给站长，给不出下一步
+eq(r.code, 'others_own', '409 带机器可判的 code');
+eq([r.others, r.favorites], [1, 0], '409 报出杀伤半径（他人收录 1 / 收藏 0）');
+eq(r.refs?.owners, 1, '409 附带完整引用计数');
+// force 分支：确实要连带删（违规内容）时必须真的删掉别人的收录
+r = await j(await admDelete({ request: req('DELETE', '/api/admin/blogger', { screen_name: 'purgeme', confirm: 'DELETE', force: true }, adminTok), env }));
+eq(r.success, true, 'force:true -> 放行');
+eq(r.deleted?.owners_removed, 1, '回报连带移除的收录数');
+eq(q1(`SELECT COUNT(*) n FROM bloggers WHERE id='b-purge'`).n, 0, '共享数据已删');
+eq(q1(`SELECT COUNT(*) n FROM blogger_owners WHERE blogger_id='b-purge'`).n, 0, '他人的收录指针也一并清掉（force 的语义）');
 
 // ══ 7. 错误路径 ══
 console.log('\n[7] 错误路径');

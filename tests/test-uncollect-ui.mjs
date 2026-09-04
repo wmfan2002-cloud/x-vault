@@ -40,6 +40,8 @@ const mk = (id, handle, visibility) => ({
   avatar_url: '', cover_url: '', tag_ids: [], visibility,
 });
 const myData = [mk('1', 'alice', 'public'), mk('2', 'bob', 'private'), mk('3', 'carol', 'public')];
+// GET /api/favorites 同时服务「我的收藏」视图与 loadFavoriteIds()，两边共用这一份
+let favData = [];
 
 const buildDom = async (url, archiveData = []) => {
   const html = html0.replace(/<script[^>]*app\.js[^>]*><\/script>/, '')
@@ -75,7 +77,7 @@ const buildDom = async (url, archiveData = []) => {
         (method, u) => {
           if (method === 'GET' && u === '/api/auth/me')
             return { body: { success: true, user: { id: 'u1', email: 'u1@test', display_name: 'E2E', owned: myData.length, favorites: 0 } } };
-          if (method === 'GET' && u === '/api/favorites') return { body: { success: true, data: [] } };
+          if (method === 'GET' && u === '/api/favorites') return { body: { success: true, data: favData } };
           if (method === 'GET' && u === '/api/my-bloggers')
             return { body: { success: true, data: myData, count: myData.length } };
           if (method === 'GET' && u === '/data/archive.json') return { body: archiveData };
@@ -166,7 +168,74 @@ console.log('\n[/] 公开画廊不出现');
 const dom2 = await buildDom('/', [mk('9', 'galleryone', 'public'), mk('10', 'gallerytwo', 'public')]);
 eq(dom2.window.document.querySelectorAll('.btn-card-remove').length, 0, '画廊卡片没有取消收录按钮');
 eq(dom2.window.document.getElementById('mine-tools').classList.contains('hidden'), true, '批量工具条也隐藏');
+
+// 收藏按钮必须在操作栏里，不能在 banner 上 —— list-view 整块 banner 不渲染
+// (`.blogger-wall.list-view .card-header-banner { display: none }`)，
+// 放 banner 上就等于在「数据列表」视图下彻底点不到。jsdom 不做布局，
+// 所以这里断言的是结构位置（真正的成因），而不是可见性。
+const card2 = dom2.window.document.querySelector('.blogger-card');
+eq(!!card2.querySelector('.card-action-footer .card-fav-btn'), true, '收藏按钮在操作栏内（三种视图都在）');
+eq(card2.querySelector('.card-header-banner').querySelector('.card-fav-btn'), null, 'banner 上没有任何按钮');
+dom2.window.document.querySelector('.view-tab-btn[data-view="list"]').click();
+await waitFor(() => dom2.window.document.getElementById('blogger-wall').classList.contains('list-view'), '切到数据列表视图');
+eq(!!dom2.window.document.querySelector('.blogger-card .card-action-footer .card-fav-btn'), true, '数据列表视图下收藏按钮仍在操作栏（可达）');
 dom2.window.close();
+
+// ══ /favorites：取消收藏就地摘卡 + 引用归零时清掉画廊快照缓存 ══
+console.log('\n[/favorites] 取消收藏');
+favData = [mk('1', 'alice', 'public'), mk('2', 'bob', 'public')];
+const dom3 = await buildDom('/favorites');
+const doc3 = dom3.window.document;
+const favBtns = () => [...doc3.querySelectorAll('.card-fav-btn')];
+eq(favBtns().length, 2, '两张收藏卡各有一个收藏按钮');
+eq(favBtns().every((b) => b.classList.contains('is-fav')), true, '收藏页里的按钮都是已收藏态');
+
+const favDeletes = [];
+dom3.window.__responders.unshift((method, u, init) => {
+  if (method === 'DELETE' && u === '/api/favorites') {
+    favDeletes.push(JSON.parse(init.body));
+    return { body: { success: true, message: '已取消收藏 @alice', favorited: false, count: 1 } };
+  }
+  return null;
+});
+favBtns()[0].click();
+await waitFor(() => favBtns().length === 1, '取消收藏后卡片就地移除');
+eq(favDeletes, [{ screen_name: 'alice' }], 'DELETE /api/favorites 带正确的 screen_name');
+eq(doc3.body.textContent.includes('已取消收藏 @alice'), true, '服务端提示被展示（原来整条 message 被丢掉）');
+eq([doc3.getElementById('vs-count-fav').textContent, doc3.getElementById('dd-count-fav').textContent], ['1', '1'],
+  '头部与下拉两个收藏计数同步（原来只更新了藏在下拉里的那个）');
+dom3.window.__responders.shift();
+
+// 引用归零：服务端已经把整份归档数据回收了，本地那份公开画廊快照必须失效，
+// 否则首页还会显示这条已经不存在的档案，点开抽屉是个幽灵。
+dom3.window.localStorage.setItem('x_archive_cached_data', '[{"id":"2"}]');
+dom3.window.__responders.unshift((method, u) => {
+  if (method === 'DELETE' && u === '/api/favorites')
+    return { body: { success: true, message: '已取消收藏 @bob；已无人收录或收藏，归档数据一并回收', favorited: false, reclaimed: true, count: 0 } };
+  return null;
+});
+favBtns()[0].click();
+await waitFor(() => favBtns().length === 0, '最后一张也移除');
+eq(dom3.window.localStorage.getItem('x_archive_cached_data'), null, '回收后画廊快照缓存被清掉');
+eq(doc3.body.textContent.includes('归档数据一并回收'), true, '回收这件事明确告知用户');
+dom3.window.__responders.shift();
+
+// 失败路径：卡片留着、按钮恢复可用、错误可见
+favData = [mk('5', 'dave', 'public')];
+const dom4 = await buildDom('/favorites');
+dom4.window.__responders.unshift((method, u) => {
+  if (method === 'DELETE' && u === '/api/favorites')
+    return { status: 500, body: { success: false, error: '取消收藏失败: boom' } };
+  return null;
+});
+const btn4 = dom4.window.document.querySelector('.card-fav-btn');
+btn4.click();
+await waitFor(() => dom4.window.document.body.textContent.includes('取消收藏失败'), '失败原因被展示');
+eq(dom4.window.document.querySelectorAll('.blogger-card').length, 1, '失败时卡片不消失');
+eq(btn4.disabled, false, '失败后按钮恢复可用');
+eq(btn4.classList.contains('is-fav'), true, '失败后仍是已收藏态（不做乐观翻转）');
+dom3.window.close();
+dom4.window.close();
 
 console.log(`\n════════ ${pass} 通过 / ${failCount} 失败 ════════`);
 if (failCount) { console.log('失败项：\n - ' + fails.join('\n - ')); process.exit(1); }

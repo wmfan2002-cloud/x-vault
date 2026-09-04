@@ -1,6 +1,10 @@
 /**
- * Nv-Pu-Sa (X-Archive) v2 - Client Application & React-Bits Motion Engine
- * Synthesized: Karpathy (Discrete Column Masonry) · UI-UX-Pro-Max (OLED/Light) · Impeccable (Native Badge & Frameless Modal) · React-Bits (Slot Machine Shuffle) · Better-Icons
+ * X-符离集 (x-vault) — 画廊前端
+ *
+ * 画廊 / 我的收录 / 我的收藏 三个视图共用同一条渲染管线：
+ *   rawUsers -> applyFilterAndSort -> 瀑布流渲染
+ * 所以换视图只是换 rawUsers 的来源，搜索、排序、视图切换、无限滚动、
+ * 详情抽屉全都白拿。
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1483,14 +1487,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="card-ambient-glow"></div>
       <div class="card-header-banner" style="background-image: url('${coverSrc}');">
         ${isTombstone ? '<div class="tombstone-banner-veil"></div>' : ''}
-        ${currentUser ? `
-          <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}"
-                  data-handle="${escapeHtml(user.screen_name)}"
-                  title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="收藏">
-            <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-          </button>` : ''}
       </div>
       ${state.viewMode !== 'all' && (user.tag_ids || []).length ? `
         <div class="card-tag-dots" title="已归入 ${(user.tag_ids || []).length} 个标签">
@@ -1526,12 +1522,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="card-action-footer">
         ${/*
-          ⚠️ 可见性与标签这两个控件**必须放在操作栏里，不能放 banner 上**。
+          ⚠️ 可见性、标签、收藏这些控件**必须放在操作栏里，不能放 banner 上**。
           `.blogger-wall.list-view .card-header-banner { display: none }` ——
           「数据列表」视图整块 banner 都不渲染，放那儿的按钮在该视图下彻底不可达。
-          （第一版就放在 banner 左上角，站长反馈"没看见"。）
+          （第一版就放在 banner 左上角，站长反馈"没看见"；收藏按钮后来又踩了一次。）
           操作栏在 grid / compact / list 三种视图下都存在。
         */ ''}
+        ${currentUser ? `
+          <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}" type="button"
+                  data-handle="${escapeHtml(user.screen_name)}"
+                  title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="${isFaved ? '取消收藏' : '加入收藏'}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>` : ''}
         ${state.viewMode === 'mine' && currentUser ? `
           <button class="btn-card-vis ${user.visibility === 'private' ? 'is-private' : 'is-public'}" type="button"
                   data-handle="${escapeHtml(user.screen_name)}" data-vis="${escapeHtml(user.visibility || 'public')}"
@@ -2695,14 +2699,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // 关闭状态存 localStorage，key 里带 updated_at：管理员改了内容就会重新显示，
   // 只用 id 的话改了正文也提醒不到已经关过的人。
   const ANN_DISMISS_KEY = 'x_archive_ann_dismissed';
+  // 「已读」与「横幅已关闭」是**两个独立状态**，必须分开存。
+  //
+  // 置顶公告的横幅按要求每次刷新都要重新出现（annPinnedClosedThisPage 只记本页），
+  // 所以不能拿 dismissed 当已读依据 —— 否则置顶公告永远算未读，红点永远消不掉。
+  // 反过来也不行：把置顶公告标成已读之后横幅还得照常出现。
+  //
+  // 于是：dismissed 管「横幅还要不要显示」，read 管「铃铛红点还要不要亮」。
+  // 两者都带 updated_at，管理员改了内容就重新变成未读 / 重新显示。
+  const ANN_READ_KEY = 'x_archive_ann_read';
 
-  function getDismissedAnns() {
-    try { return JSON.parse(localStorage.getItem(ANN_DISMISS_KEY) || '[]'); } catch { return []; }
+  const annSig = (a) => `${a.id}:${a.updated_at}`;
+
+  function readJsonArray(key) {
+    try {
+      const v = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(v) ? v : [];
+    } catch { return []; }
   }
-  function dismissAnn(sig) {
+  function pushCapped(key, sig) {
     // 只留最近 50 条，否则这个 key 会无限长
-    const list = [...new Set([...getDismissedAnns(), sig])].slice(-50);
-    try { localStorage.setItem(ANN_DISMISS_KEY, JSON.stringify(list)); } catch { /* 隐私模式忽略 */ }
+    const list = [...new Set([...readJsonArray(key), sig])].slice(-50);
+    try { localStorage.setItem(key, JSON.stringify(list)); } catch { /* 隐私模式忽略 */ }
+  }
+
+  const getDismissedAnns = () => readJsonArray(ANN_DISMISS_KEY);
+  const dismissAnn = (sig) => pushCapped(ANN_DISMISS_KEY, sig);
+  const getReadAnns = () => readJsonArray(ANN_READ_KEY);
+
+  /** 把当前所有生效公告标记为已读（红点据此消失）。返回是否真的有变化。 */
+  function markAllAnnsRead() {
+    const read = getReadAnns();
+    const unread = annAll.map(annSig).filter((s) => !read.includes(s));
+    if (!unread.length) return false;
+    const list = [...new Set([...read, ...unread])].slice(-50);
+    try { localStorage.setItem(ANN_READ_KEY, JSON.stringify(list)); } catch { /* 隐私模式忽略 */ }
+    return true;
   }
 
   const LEVEL_ICON = {
@@ -2740,14 +2772,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAnnBell();
   }
 
-  /** 铃铛按钮：有生效公告就显示；有"没在横幅上看过的"就点红点 */
+  /** 铃铛按钮：有生效公告就显示；有没读过的就点红点。
+   *  ⚠️ 判据只看 ANN_READ_KEY，**不能看 pinned** —— 置顶公告永远存在，
+   *  一旦把它算作恒定未读，红点就永远消不掉（原来就是这个 bug）。 */
   function renderAnnBell() {
     const btn = document.getElementById('btn-ann-center');
     const dot = document.getElementById('ann-bell-dot');
     if (!btn) return;
     btn.classList.toggle('hidden', annAll.length === 0);
-    const dismissed = getDismissedAnns();
-    const unread = annAll.filter((a) => a.pinned || !dismissed.includes(`${a.id}:${a.updated_at}`)).length;
+    const read = getReadAnns();
+    const unread = annAll.filter((a) => !read.includes(annSig(a))).length;
     dot?.classList.toggle('hidden', unread === 0);
     btn.title = annAll.length ? `站点公告（${annAll.length} 条${unread ? `，${unread} 条未读` : ''}）` : '站点公告';
   }
@@ -2788,7 +2822,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('ann-next')?.addEventListener('click', () => { annIndex++; renderAnnBar(); });
     document.getElementById('ann-close')?.addEventListener('click', () => {
       if (a.pinned) annPinnedClosedThisPage.add(a.id);   // 只记本页，刷新即复原
-      else dismissAnn(`${a.id}:${a.updated_at}`);
+      else dismissAnn(annSig(a));
+      // 在横幅上关掉 = 已经看过这条了，红点也该跟着算。置顶的同理 ——
+      // 它的横幅下次还会出现，但"没读过"这件事已经不成立了。
+      pushCapped(ANN_READ_KEY, annSig(a));
       annBanner = annBanner.filter((x) => x.id !== a.id);
       annIndex = 0;
       renderAnnBar();
@@ -2806,19 +2843,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const dismissed = getDismissedAnns();
+    // 未读标记要在**标记已读之前**取，否则打开面板的同时就全变成已读了，
+    // 用户看不出这次有哪几条是新的。
+    const read = getReadAnns();
     list.innerHTML = annAll.map((a) => {
       const level = annLevel(a.level);
       const when = a.created_at
         ? new Date(a.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
         : '';
-      const closed = !a.pinned && dismissed.includes(`${a.id}:${a.updated_at}`);
+      const closed = !a.pinned && dismissed.includes(annSig(a));
+      const isNew = !read.includes(annSig(a));
       return `
-        <div class="anncenter-item is-${level}">
+        <div class="anncenter-item is-${level}${isNew ? ' is-unread' : ''}">
           <div class="anncenter-head">
             <span class="ann-icon">${LEVEL_ICON[level]}</span>
             ${a.pinned ? '<span class="ann-pin-tag">置顶</span>' : ''}
             ${a.title ? `<strong>${escapeHtml(a.title)}</strong>` : ''}
             <span style="flex:1"></span>
+            ${isNew ? '<span class="anncenter-new">未读</span>' : ''}
             ${closed ? '<span class="anncenter-closed">已收起</span>' : ''}
             <span class="ann-date">${when}</span>
           </div>
@@ -2829,8 +2871,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const annCenterBackdrop = document.getElementById('anncenter-backdrop');
   document.getElementById('btn-ann-center')?.addEventListener('click', () => {
+    // 先渲染（此时还能读到旧的已读集合，未读条目带"未读"标记），再标记已读。
+    // 顺序反了的话用户永远看不到哪几条是新的。
     renderAnnCenter();
     annCenterBackdrop?.classList.remove('hidden');
+    // 点开公告中心 = 看过了 -> 红点消失。横幅的显示与否不受影响
+    // （置顶公告下次刷新照样出现，那是 dismissed 管的事）。
+    if (markAllAnnsRead()) renderAnnBell();
   });
   document.getElementById('anncenter-close')?.addEventListener('click', () => annCenterBackdrop?.classList.add('hidden'));
   annCenterBackdrop?.addEventListener('click', (e) => { if (e.target === annCenterBackdrop) annCenterBackdrop.classList.add('hidden'); });
@@ -3180,20 +3227,53 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentUser) { btnOpenAuth?.click(); return; }
     btn.disabled = true;
     const isFav = btn.classList.contains('is-fav');
-    const r = await fetch('/api/favorites', {
-      method: isFav ? 'DELETE' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ screen_name: handle }),
-    }).then(x => x.json()).catch(() => ({}));
+    let r;
+    try {
+      r = await fetch('/api/favorites', {
+        method: isFav ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screen_name: handle }),
+      }).then((x) => x.json());
+    } catch {
+      showToast('网络异常');
+      btn.disabled = false;
+      return;
+    }
 
-    if (r.success) {
-      btn.classList.toggle('is-fav', !isFav);
-      btn.title = isFav ? '加入收藏' : '取消收藏';
+    if (!r?.success) {
+      showToast(r?.error || '操作失败');
+      btn.disabled = false;
+      return;
+    }
+
+    showToast(r.message);
+    const nowFav = !isFav;
+    btn.classList.toggle('is-fav', nowFav);
+    btn.title = nowFav ? '取消收藏' : '加入收藏';
+    btn.setAttribute('aria-label', nowFav ? '取消收藏' : '加入收藏');
+
+    if (currentUser) currentUser.favorites = r.count ?? currentUser.favorites;
+    const n = r.count ?? currentUser?.favorites ?? 0;
+    const dd = document.getElementById('dd-count-fav');
+    const vs = document.getElementById('vs-count-fav');
+    if (dd) dd.textContent = n;
+    if (vs) vs.textContent = n;
+
+    if (nowFav) {
       await loadFavoriteIds();
-      if (currentUser) currentUser.favorites = r.count ?? currentUser.favorites;
-      const el = document.getElementById('dd-count-fav');
-      if (el) el.textContent = r.count ?? 0;
-    } else if (r.error) showToast(r.error);
+    } else {
+      const row = state.rawUsers.find((x) => x.screen_name === handle);
+      if (row) myFavoriteIds.delete(row.id);
+    }
+
+    // 取消收藏后：在收藏页必须摘卡；引用归零被回收时任意视图都要摘卡，
+    // 否则抽屉会打开一条已经不存在的档案，公开画廊快照也会把幽灵留下来。
+    if (!nowFav && (state.viewMode === 'fav' || r.reclaimed)) {
+      state.rawUsers = state.rawUsers.filter((x) => x.screen_name !== handle);
+      applyFilterAndSort();
+      applyViewChrome();
+    }
+    if (r.reclaimed) localStorage.removeItem('x_archive_cached_data');
     btn.disabled = false;
   };
 

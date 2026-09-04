@@ -26,7 +26,7 @@
  * 归档系统的立身之本是"永不丢失"，所以删除要求确认短语，且账号在 X 上消失时
  * 绝不该走删除 —— 那种情况是墓碑 (is_suspended)，档案必须留着。
  */
-import { ok, fail, nowIso } from '../../_lib/http.js';
+import { ok, fail, json, nowIso } from '../../_lib/http.js';
 import { requireAdmin } from '../../_lib/auth.js';
 import { getXCredentials } from '../../_lib/crypto.js';
 import { lookupUserByHandle } from '../../_lib/x-provider/graphql.js';
@@ -189,14 +189,20 @@ export async function onRequestDelete({ request, env }) {
     // 是替别人做决定。所以这里挡一道，要站长明确表示知道杀伤半径。
     // 正常想下架应该走 mode:'release'。
     if (others > 0 && body?.force !== true) {
-      return fail(
-        `还有 ${others} 位用户把 @${row.screen_name} 收录在自己名下` +
-        `${refs.favorites ? `，另有 ${refs.favorites} 条收藏` : ''}。` +
-        `彻底删除会把他们的收录一起毁掉。\n` +
-        `· 只想撤出公开画廊：mode:"release"（他们的私人收录保留）\n` +
-        `· 确实要连带删除（违规内容）：再加 force:true`,
-        409
-      );
+      // error 字符串保持原样：离线测试按原文断言 409。结构化字段给管理台二次确认用。
+      return json({
+        success: false,
+        error:
+          `还有 ${others} 位用户把 @${row.screen_name} 收录在自己名下` +
+          `${refs.favorites ? `，另有 ${refs.favorites} 条收藏` : ''}。` +
+          `彻底删除会把他们的收录一起毁掉。\n` +
+          `· 只想撤出公开画廊：mode:"release"（他们的私人收录保留）\n` +
+          `· 确实要连带删除（违规内容）：再加 force:true`,
+        code: 'others_own',
+        others,
+        favorites: refs.favorites,
+        refs,
+      }, 409);
     }
 
     const { mediaDeleted } = await purgeBlogger(env.DB, row.id, {
