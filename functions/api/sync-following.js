@@ -1,7 +1,6 @@
 /**
  * POST /api/sync-following   { ct0, authToken } -> 模式 A 响应
  *
- * 契约见 _reference/spec/03-api-contract.md §3.6
  *
  * 走"模式 A: 边缘直返" —— Function 内同步抓完并直接返回结果数组。
  * 智能增量: X 按关注时间倒序返回, 连续命中 3 个已在库博主即判定无新增并停止翻页

@@ -20,7 +20,7 @@ export default [
       'node_modules/',
       '.wrangler/',
       'public/data/',       // 构建产物（真实数据快照）
-      '_reference/nvpusa/', // 原站客户端源码拷贝，保持原样供比对，不检查
+      '_reference/',        // 本地参考资料，不入库、不检查
     ],
   },
   {

@@ -3,7 +3,7 @@
  * 全量数据深度刷新 —— 在 GitHub Actions 上跑（见 .github/workflows/full-sync.yml）。
  *
  * 为什么不在 Worker 里跑：332 人 × (查询 + 两张图) 远超 Workers 的 CPU/时长限额，
- * 且需要 cron 与密钥托管。见 _reference/spec/05-sync-pipeline.md §10。
+ * 且需要 cron 与密钥托管。
  *
  * 与边缘增量同步的分工：
  *   增量 (POST /api/sync-following) 只发现**新增关注**，连续 3 个已知即停

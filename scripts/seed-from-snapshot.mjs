@@ -2,7 +2,7 @@
 /**
  * 把现有 332 条快照灌入 D1。
  *
- * 转换要点 (依据 _reference/spec/04-data-model.md):
+ * 转换要点:
  *   - avatar_url 形如 /api/media?key=avatars%2FX_400x400.jpg -> 解出 avatar_key, origin 留空
  *   - avatar_url 形如 https://pbs.twimg.com/...              -> 填 avatar_origin, key 留空
  *   - cover_url 空串 -> NULL
@@ -103,7 +103,7 @@ writeFileSync(OUT, lines.join('\n') + '\n');
 console.log(`生成 ${OUT}`);
 console.log(`  记录数        ${records.length}`);
 console.log(`  R2 key 形态   ${withKey}  (图片已不可达, 需重新同步或抢救)`);
-console.log(`  原始 twimg    ${withOrigin}  (可用 _reference/recover-media.sh 抢救)`);
+console.log(`  原始 twimg    ${withOrigin}  (可用 scripts/recover-media.sh 抢救)`);
 console.log(`  无 banner     ${noCover}`);
 console.log(`  已墓碑        ${tombstoned}  (is_suspended != 0, 永不删除)`);
 

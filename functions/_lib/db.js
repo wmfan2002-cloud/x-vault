@@ -117,7 +117,7 @@ export async function listFavoritesBy(db, userId) {
   return (results || []).map((r) => ({ ...withTags(r), favorited_at: r.favorited_at }));
 }
 
-/** 管理台分页查询。参数取值见 _reference/spec/03-api-contract.md §3.8 */
+/** 管理台分页查询。参数取值见下面 SORTS 与 status 分支 */
 const SORTS = {
   backed_up_at_desc: 'backed_up_at DESC',
   backed_up_at_asc: 'backed_up_at ASC',

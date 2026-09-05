@@ -2,7 +2,6 @@
  * GET /api/admin/workflow-status[?run_id=]
  *   -> { success, run_id, status, conclusion, logs, is_active }
  *
- * 契约见 _reference/spec/03-api-contract.md §3.10
  *
  * logs 是**整段字符串**。客户端用 knownLogLines Set 自行去重增量输出
  * (admin.js:876), 所以这里每次回全量日志即可, 服务端不必做增量。

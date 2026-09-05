@@ -1,7 +1,7 @@
 /**
  * 同步核心: diff -> history -> 媒体归档 -> UPSERT。
  *
- * 依据 _reference/spec/04-data-model.md 与 05-sync-pipeline.md。
+ * 媒体归档与字段 diff 的落库规则见本文件内各函数注释。
  *
  * 三条不可违背的规则:
  *   1. 归档记录**永不删除** —— 账号从 X 消失只改 is_suspended, 这是产品的全部意义

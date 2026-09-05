@@ -1,7 +1,6 @@
 /**
  * POST /api/track-click   批量点击埋点
  *
- * 契约见 _reference/spec/03-api-contract.md §3.4
  *
  * 真实 body 形状 (从 app.js:354-368 的离线队列结构反推, 不是猜的):
  *   { batch: [ { screen_name: "Anaimiya", card: 1, timeline: 2, roulette: 0, total: 3 }, ... ] }

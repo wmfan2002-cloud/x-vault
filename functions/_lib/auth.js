@@ -1,7 +1,7 @@
 /**
  * 管理台鉴权。
  *
- * 相对原站的改动 (原站问题见 _reference/spec/03-api-contract.md §1):
+ * 相对被复刻站点的改动:
  *   - 令牌不再由前端存 localStorage, 改走 HttpOnly Cookie
  *   - 仍然兼容 x-admin-token 头, 因为沿用的 admin.js 是这么发请求的;
  *     两者都接受, Cookie 优先。前端改造完成后可以只留 Cookie。

@@ -1,7 +1,7 @@
 /**
  * X 抓取 provider —— Web 客户端 GraphQL 实现。
  *
- * 设计依据 _reference/spec/05-sync-pipeline.md。定位: 归档**你自己关注的账号**,
+ * 定位: 归档**你自己关注的账号**,
  * 用你自己的会话凭据, 小规模, 遵守速率限制。
  *
  * 脆弱点: Following 的 queryId 会被 X 轮换, 只存在于其 web bundle 里, 所以必须

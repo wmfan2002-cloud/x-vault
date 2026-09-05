@@ -1,7 +1,6 @@
 /**
  * POST /api/admin/login   { username, password } -> { success, token }
  *
- * 契约见 _reference/spec/03-api-contract.md §1
  *
  * 相对原站的改动: 除了照旧返回 token (沿用的 admin.js 需要它放 localStorage),
  * 同时下发 HttpOnly Cookie。服务端优先认 Cookie, 前端改造完成后可以把 token 停掉。

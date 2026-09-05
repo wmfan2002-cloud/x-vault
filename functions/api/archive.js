@@ -2,7 +2,6 @@
  * GET  /api/archive  公开全量读 (静态快照失效时的降级源)
  * POST /api/archive  管理员从备份 JSON 覆盖导入
  *
- * 契约见 _reference/spec/03-api-contract.md §3.1
  * 注意两者响应形状不同: 静态快照是裸数组, 这里是 {success, data:[]}
  */
 import { ok, fail, json, nowIso } from '../_lib/http.js';

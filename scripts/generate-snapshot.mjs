@@ -2,7 +2,7 @@
 /**
  * 从 D1 重新生成静态快照 public/data/archive.json。
  *
- * 为什么要有这个快照 (见 _reference/spec/05-sync-pipeline.md §11):
+ * 为什么要有这个快照:
  *   - 公开读走 CDN, D1 读配额消耗为 0
  *   - 后端整个挂掉画廊照常工作 (原站线上就是这个状态: Functions 全没了, 站还能看)
  *   - 代价是数据有延迟, 延迟 = 全量刷新的间隔

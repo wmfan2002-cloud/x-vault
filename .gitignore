@@ -22,8 +22,8 @@ STATE.md
 # 或直接建 private 仓库后 git add -f 放行 —— 上传前先想清楚这批数据是否适合公开。
 public/data/archive.json
 
-# 原站（nv-pu-sa）客户端源码拷贝，仅本地比对用，不发布
-_reference/nvpusa/
+# 本地参考资料（被复刻站点的客户端源码拷贝、反推笔记），仅本地留存，不入库
+_reference/
 
 # 编辑器
 .idea/

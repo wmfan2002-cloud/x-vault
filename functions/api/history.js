@@ -1,7 +1,7 @@
 /**
  * GET /api/history?id=<x-id>&screen_name=<handle>
  *
- * 字段变更时间线。契约见 _reference/spec/03-api-contract.md §3.3
+ * 字段变更时间线。
  *
  * 原站这张表有读取方却没有写入方, 所以线上时间线永远只显示"首次归档"兜底那一条。
  * 这里由同步管线真正写入 diff (见 functions/_lib/sync.js)。

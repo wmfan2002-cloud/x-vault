@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Recover the still-reachable archived media from the nv-pu-sa dataset.
+# 从一份导出的归档 JSON 里，把仍然可达的原始媒体抢救到本地。
 #
-# WHY: 324 of the 332 records store only a dead R2 pointer
-# (/api/media?key=avatars%2F<handle>_400x400.jpg) — the origin twimg URL was
-# discarded on migration, and the R2-backed endpoint is no longer deployed, so
-# those images are gone. Only 8 records never migrated and still carry a raw
-# twimg URL. Those are recoverable *right now*; verified live on 2026-09-01.
+# 适用场景：某份导出数据里的记录只剩一个失效的 R2 指针
+# (/api/media?key=avatars%2F<handle>_400x400.jpg)，原始 twimg URL 在迁移时被丢弃，
+# 而那个 R2 端点也已不再部署 —— 这些图就彻底没了。只有少数记录还带着原始
+# twimg URL，那些是**当下**还能抢救的，越早跑越好。
 #
-# Of those 8, one (@Limokkii) is suspended: its avatar still returns 200 but its
-# banner 403s. Suspension appears to purge banners while leaving avatars on the
-# CDN — so the avatar is the part worth grabbing before it rots.
+# 注意：已封号的账号，头像通常还在 CDN 上（返回 200），banner 往往已被清除（403）。
+# 所以头像是更值得优先抓的部分。
 #
-# NOT RUN AUTOMATICALLY. Review, then: bash scripts/recover-media.sh
+# 不会自动运行。先 review，然后：
+#   SRC=/path/to/data_archive.json bash scripts/recover-media.sh
 
 set -uo pipefail
 
-SRC="${SRC:-/home/fcs/x-vault/_reference/nvpusa/data_archive.json}"
-OUT="${OUT:-/home/fcs/x-vault/recovered-media}"
+# 必须显式指定输入文件 —— 没有默认值，避免指向一个不存在的路径静默失败
+SRC="${SRC:?请用 SRC=/path/to/data_archive.json 指定导出的归档 JSON}"
+OUT="${OUT:-./recovered-media}"
 
 mkdir -p "$OUT/avatars" "$OUT/covers"
 

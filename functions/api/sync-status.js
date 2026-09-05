@@ -1,7 +1,6 @@
 /**
  * GET /api/sync-status -> 进度轮询 (客户端 1500ms 一次)
  *
- * 契约见 _reference/spec/03-api-contract.md §3.6。
  * 注意: 这个响应**不是** {success,...} 形状 —— admin.js:598 直接读 status.running 等字段。
  */
 import { json, fail, nowIso } from '../_lib/http.js';

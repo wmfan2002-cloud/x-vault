@@ -2,7 +2,6 @@
  * GET  /api/admin/credentials  -> { success, hasCredentials, screen_name }
  * POST /api/admin/credentials  { ct0, authToken } -> { success }
  *
- * 契约见 _reference/spec/03-api-contract.md §3.7
  *
  * ⚠️ 与原站的关键差异: 原站 GET 把 ct0 / authToken **明文回传**给前端 (admin.js:365-366),
  * 前端再写进 localStorage。这两个 Cookie 等同 X 账号完全控制权, 任何 XSS 都能拿走。

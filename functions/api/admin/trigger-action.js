@@ -2,7 +2,6 @@
  * POST /api/admin/trigger-action  { action: 'full_sync' }
  *   -> { success, message, run_id, actions_url }
  *
- * 契约见 _reference/spec/03-api-contract.md §3.10
  *
  * 派发 GitHub Actions 的全量刷新。为什么不在 Worker 里跑: 332 人 × (查询 + 两张图)
  * 远超 Workers 的 CPU/时长限额, 且需要 cron 与密钥托管。见 05-sync-pipeline.md §10。

@@ -1,7 +1,6 @@
 /**
  * POST /api/verify-cookie   { ct0, authToken } -> { success, user }
  *
- * 契约见 _reference/spec/03-api-contract.md §3.5
  * 注意字段是驼峰 authToken, 不是 auth_token。
  *
  * 副作用: 验证成功时把凭据加密入库(替代原站的明文回传+localStorage),

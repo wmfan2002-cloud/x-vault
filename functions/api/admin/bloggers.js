@@ -2,7 +2,6 @@
  * GET  /api/admin/bloggers?keyword=&status=&sort=&page=&limit=
  * POST /api/admin/bloggers  { screen_name, is_blocked }
  *
- * 契约见 _reference/spec/03-api-contract.md §3.8
  *
  * GET 响应必须同时带 data / stats / total / page / limit / totalPages ——
  * admin.js:1191-1200 全部都读。stats 是全库统计, 不受筛选分页影响。

@@ -2,7 +2,6 @@
  * GET /api/media?key=<r2-key>   从 R2 取已归档的图
  * GET /api/media?url=<remote>   代理远端图 (仅 twimg 白名单)
  *
- * 契约见 _reference/spec/03-api-contract.md §3.2
  *
  * 必须带 CORS: app.js 的头像 <img> 用 crossorigin="anonymous" 以便 canvas 取色,
  * 缺 CORS 头会导致取色静默失败并回落到 hash 调色板。

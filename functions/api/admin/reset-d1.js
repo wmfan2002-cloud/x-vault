@@ -1,7 +1,6 @@
 /**
  * POST /api/admin/reset-d1   { clearCredentials }
  *
- * 契约见 _reference/spec/03-api-contract.md §3.9
  *
  * ⚠️ 破坏性操作。原站只有一个前端 confirm() 挡着。这里要求 body 里带上
  * confirm:"DELETE ALL BLOGGERS" 才真的执行 —— 前端沿用代码不带这个字段, 所以
