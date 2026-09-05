@@ -64,15 +64,15 @@ node scripts/visual-snap.mjs diff before after   # 要看到「外观完全一�
 盯**块级重合**（>=5 行连续相同）。行级重合把 `}`、`display: flex;` 这种谁都会写的行
 也算进去，虚高，且不可能也不必降到 0。
 
-基线（2026-09-06，删掉死样式之后）：
+进度（2026-09-06，抽完图标之后。括号里是起点）：
 
 | 文件 | 我方行数 | 块级重合 | 最长连续相同 | 目标 |
 |---|---|---|---|---|
 | style.css | 5442 | 80% | 582 行 | <5% |
-| admin.html | 927 | 75% | 259 行 | <5% |
-| admin.js | 2606 | 60% | 170 行 | <5% |
-| index.html | 574 | 56% | 121 行 | <5% |
-| app.js | 2954 | 54% | 281 行 | <5% |
+| admin.js | 2680 | 57% (60%) | 170 行 | <5% |
+| app.js | 2950 | 53% (54%) | 281 行 | <5% |
+| admin.html | 778 | **39%** (75%) | **32 行** (259) | <5% |
+| index.html | 561 | **39%** (56%) | **21 行** (121) | <5% |
 
 ## 交战规则
 
@@ -95,9 +95,15 @@ node scripts/visual-snap.mjs diff before after   # 要看到「外观完全一�
 - [x] 采下 `894af3e` 的外观基线 `.visual/head/`
 
 ### 阶段 1 · 管理台（最脏，且没有视觉包袱，先在这里把方法跑通）
-- [ ] `admin.html` 重写标记结构：自己的分区、自己的注释、换掉来源的内联 svg 写法
-      （259 行的连续相同块在 @458 起的博主表格，147 行在 @101 起的顶栏）
-- [ ] 同步改 `admin.js` 选择器与 `style.css` 管理台段落
+- [x] 图标抽成 `public/icons.svg` 精灵图（`scripts/extract-icons.mjs`，181 处 -> 99 个 symbol）。
+      顺带把 index.html/app.js/admin.js 的图标一起抽了 —— 它们共用同一批图形，分批抽会重复。
+      admin.html 最长块 259 -> 44 行，index.html 121 -> 21 行。外观零变化。
+- [x] `admin.html` 重写标记结构（1036 -> 778 行）。分区注释按职责重写；七个排序项、
+      六张 KPI 卡、四个健康度胶囊搬进 `admin.js` 按数据生成（SORT_OPTIONS / KPI_CARDS /
+      HEALTH_PILLS）。块级重合 62% -> 39%，最长块 44 -> 32 行。外观零变化。
+- [ ] `admin.html` 剩下的内联 style：三个模态框里还有大段 `style="..."`。
+      ⚠️ 搬进 style.css 会改变层叠顺序，要一处一处搬、一处一验
+- [ ] `admin.js` 去派生：还剩 57% 块级重合、最长块 170 行 @1643（分析面板的图表配置）
 - [ ] `admin.js` 按面板拆模块（overview / bloggers / analytics / announcements / submissions / danger）
 - [ ] 管理台 CSS 重新组织：现在散在第 10 节和第 13-18 节两处，共 1884 行
 
