@@ -7,6 +7,89 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ==================== 0. 同形标记的生成 ====================
+  //
+  // 这三处原本在 admin.html 里逐条手写：七个排序项、六张 KPI 卡、四个健康度胶囊，
+  // 每条都是同一套结构换文案换图标，加起来近百行重复标记。
+  // 移到这里按数据生成 —— 加一项只需在数组里加一行，结构只有一份。
+  //
+  // ⚠️ 生成出的 DOM 必须与原来逐字等价（class 顺序、id、data-val 都一样），
+  //    style.css 与外观回归网都盯着这些。
+
+  /** 图标引用点。粗细与颜色可继承，所以 symbol 只存几何，见 scripts/extract-icons.mjs */
+  const icon = (name, size, extra = '') =>
+    `<svg width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2.2"` +
+    ` stroke-linecap="round" stroke-linejoin="round"${extra ? ' ' + extra : ''} aria-hidden="true">` +
+    `<use href="/icons.svg#${name}"/></svg>`;
+
+  const SORT_OPTIONS = [
+    ['backed_up_at_desc', '最新归档优先'],
+    ['backed_up_at_asc', '最早归档优先'],
+    ['clicks_desc', '热度由高到低'],
+    ['clicks_asc', '热度由低到高'],
+    ['followers_desc', '粉丝量由高到低'],
+    ['followers_asc', '粉丝量由低到高'],
+    ['name_asc', '博主昵称 A-Z'],
+  ];
+
+  /** [id 后缀, 图标, 配色 class, 标签, 初值]。顺序即视觉顺序。 */
+  const KPI_CARDS = [
+    ['clicks', 'flame', 'icon-flame', '本站全场景点击跳转', '0', 'highlight-glow'],
+    ['total', 'users', 'icon-blue', '归档博主总人数', '0'],
+    ['followers', 'star', 'icon-gold', '全网总粉丝覆盖规模', '0'],
+    ['active-creators', 'check-circle', 'icon-emerald', '受访互动博主数', '0'],
+    ['verified-rate', 'badge-check', 'icon-cyan', 'X 官方认证比例', '0%'],
+    ['r2-count', 'box', 'icon-purple', 'R2 高清图片冷备', '0'],
+  ];
+
+  /** [id 后缀, 状态 class, 圆点 class, 标题] */
+  const HEALTH_PILLS = [
+    ['active', 'active', 'dot-green', '正常展示中'],
+    ['blocked', 'blocked', 'dot-red', '画廊已屏蔽'],
+    ['suspended', 'suspended', 'dot-yellow', 'X 官方封号 / 注销'],
+    ['verified', 'verified', 'dot-blue', 'X 蓝标认证创作者'],
+  ];
+
+  function buildStaticMarkup() {
+    const sortMenu = document.getElementById('blogger-sort-menu');
+    if (sortMenu) {
+      sortMenu.innerHTML = SORT_OPTIONS.map(([val, label], i) =>
+        `<div class="menu-item${i === 0 ? ' active' : ''}" data-val="${val}" role="option">` +
+        `<span>${label}</span>` +
+        `<svg class="check-icon${i === 0 ? '' : ' hidden'}" width="13" height="13" fill="none"` +
+        ` stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>` +
+        `</div>`
+      ).join('');
+    }
+
+    const kpiGrid = document.getElementById('analytics-kpi-grid');
+    if (kpiGrid) {
+      kpiGrid.innerHTML = KPI_CARDS.map(([key, ic, tone, label, init, extra]) =>
+        `<div class="kpi-card${extra ? ' ' + extra : ''}">` +
+        `<div class="kpi-icon-wrap ${tone}">${icon(ic, 20)}</div>` +
+        `<div class="kpi-content">` +
+        `<span class="kpi-value" id="kpi-val-${key}">${init}</span>` +
+        `<span class="kpi-label">${label}</span>` +
+        `</div></div>`
+      ).join('');
+    }
+
+    const healthCol = document.getElementById('health-cards-col');
+    if (healthCol) {
+      healthCol.innerHTML = HEALTH_PILLS.map(([key, tone, dot, title]) =>
+        `<div class="health-stat-pill ${tone}">` +
+        `<div class="pill-indicator ${dot}"></div>` +
+        `<div class="pill-text">` +
+        `<span class="pill-title">${title}</span>` +
+        `<span class="pill-val" id="health-val-${key}">0 人</span>` +
+        `</div></div>`
+      ).join('');
+    }
+  }
+
+  // 必须在下面那些 getElementById 之前跑完 —— 它们要拿的元素就是这里生成的
+  buildStaticMarkup();
+
   // ==================== 1. Canvas Starfield Particles Background ====================
   function initCanvasParticles() {
     const canvas = document.getElementById('bg-particles-canvas');

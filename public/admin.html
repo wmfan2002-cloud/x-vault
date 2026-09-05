@@ -6,25 +6,28 @@
   <title>X-符离集 · 管理控制台</title>
   <link rel="icon" type="image/png" href="/logo-icon.png?v=09dfa0be08">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  
-  <!-- Modern Typography Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  <!-- Chart.js 4.4.x for High-Performance Dark/Light Visualizations -->
+  <!-- Chart.js 走 CDN：三张统计图用它。没有构建步骤，不打包进仓库。 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  
   <link rel="stylesheet" href="/style.css?v=eb60339e12">
 </head>
 <body>
+<!--
+  管理控制台。五个 Tab 共用一层外壳，同一时刻只有一个 .admin-tab-pane 不带 .hidden。
 
-  <!-- Starfield Canvas Particles Background -->
+  ⚠️ 元素 id 是契约：admin.js 全靠 getElementById 找元素，tests/ 也直接引用。
+     改 id 必须同时改这三处，且 npm test 要仍然全绿。
+  ⚠️ 未登录时这个文件根本不下发 —— functions/admin.js 拦在前面只回一个精简登录页。
+     下面的 #auth-gate-screen 是登录后会话过期时的兜底，不是主门禁。
+  图标：<use href="/icons.svg#名字">，精灵图由 scripts/extract-icons.mjs 生成。
+-->
+
   <canvas id="bg-particles-canvas"></canvas>
 
   <div class="app-container">
-    
-    <!-- Top Sticky Header -->
+
     <header class="v2-header">
       <div class="header-inner admin-header-inner">
         <div class="header-brand-group">
@@ -37,7 +40,6 @@
             </div>
           </a>
         </div>
-
         <div class="header-actions" id="admin-header-actions">
           <a href="/" class="btn-nav-pill" title="返回画廊主页">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#arrow-left"/></svg>
@@ -51,7 +53,7 @@
       </div>
     </header>
 
-    <!-- 1. Passcode Lock Screen Auth Gate Modal -->
+    <!-- 会话过期兜底登录框。主门禁在 functions/admin.js，见文件头注释。 -->
     <div id="auth-gate-screen" class="auth-gate-overlay hidden">
       <div class="auth-card-window" id="auth-card-box">
         <div class="auth-card-header">
@@ -61,20 +63,16 @@
           <h2>管理员通行鉴权</h2>
           <p>请输入控制台授权账号与通行密码</p>
         </div>
-
         <form id="admin-login-form" class="auth-form-body" onsubmit="return false;">
           <div class="field-group">
             <label for="login-user">管理员账号 (Username)</label>
             <input type="text" id="login-user" required placeholder="请输入管理员账号" autocomplete="username">
           </div>
-
           <div class="field-group">
             <label for="login-pass">通行密码 (Passcode)</label>
             <input type="password" id="login-pass" required placeholder="请输入通行密码" autocomplete="current-password">
           </div>
-
           <div id="login-error-msg" class="auth-error-banner hidden"></div>
-
           <button type="submit" id="btn-submit-login" class="btn-primary-action full-w" style="margin-top: 10px;">
             <span>解密并进入控制台</span>
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#arrow-right"/></svg>
@@ -83,22 +81,18 @@
       </div>
     </div>
 
-    <!-- 2. Authenticated Admin Multi-Tab Workspace -->
     <main id="admin-dashboard-screen" class="admin-shell-container hidden">
-      
-      <!-- Top Segmented Navigation Tabs Bar -->
+
       <nav class="admin-tabs-nav" role="tablist" aria-label="控制台模块导航">
         <button class="admin-tab-btn active" data-tab="overview" id="tab-btn-overview" role="tab" aria-selected="true" aria-controls="tab-pane-overview">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#layout-dashboard"/></svg>
           <span>控制台首页</span>
         </button>
-        
         <button class="admin-tab-btn" data-tab="bloggers" id="tab-btn-bloggers" role="tab" aria-selected="false" aria-controls="tab-pane-bloggers">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#users"/></svg>
           <span>博主档案管理</span>
           <span class="tab-nav-badge" id="tab-nav-blogger-badge">0</span>
         </button>
-        
         <button class="admin-tab-btn" data-tab="analytics" id="tab-btn-analytics" role="tab" aria-selected="false" aria-controls="tab-pane-analytics">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#chart-line"/></svg>
           <span>数据统计分析</span>
@@ -117,12 +111,11 @@
         </button>
       </nav>
 
-      <!-- ==================== TAB PANE 1: 控制台首页 (Overview & Control Hub) ==================== -->
+      <!-- ─── Tab 1 · 控制台首页 ────────────────────────────────────────
+           顶部四格遥测条，下面 62/38 分栏：左边授权与同步，右边灾备与规格。 -->
       <div id="tab-pane-overview" class="admin-tab-pane active" role="tabpanel" aria-labelledby="tab-btn-overview">
-        
-        <!-- 4 联排核心遥测监控条 (HUD Telemetry Ribbon) -->
+
         <section class="admin-hud-ribbon">
-          <!-- 监控 1: X 凭据状态 -->
           <div class="hud-item" id="hud-card-cred">
             <div class="hud-icon icon-blue">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#key"/></svg>
@@ -135,8 +128,6 @@
               <span class="hud-label">X AUTH CREDENTIALS</span>
             </div>
           </div>
-
-          <!-- 监控 2: 已归档博主总数 -->
           <div class="hud-item">
             <div class="hud-icon icon-gold">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#users"/></svg>
@@ -146,8 +137,6 @@
               <span class="hud-label">ARCHIVED VAULT</span>
             </div>
           </div>
-
-          <!-- 监控 3: R2 对象存储状态 -->
           <div class="hud-item" id="hud-card-r2">
             <div class="hud-icon icon-purple">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#box"/></svg>
@@ -160,8 +149,6 @@
               <span class="hud-label">OBJECT STORAGE · 永久冷备</span>
             </div>
           </div>
-
-          <!-- 监控 4: 云端数据库 -->
           <div class="hud-item" id="hud-card-d1">
             <div class="hud-icon icon-cyan">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#database"/></svg>
@@ -176,13 +163,9 @@
           </div>
         </section>
 
-        <!-- 62% : 38% 黄金分割 Executive Bento Grid -->
         <div class="admin-bento-grid">
-          
-          <!-- 【左侧 62% 区域】：授权中枢 + 同步控制 + 320px 宽幅极客终端 -->
           <div class="bento-col-main">
-            
-            <!-- Panel 1: X Cookie Credentials -->
+
             <section class="vault-panel-card" id="panel-credentials">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -195,13 +178,12 @@
                 </div>
               </div>
 
-              <!-- Credentials Loading State Skeleton Mask -->
+              <!-- 三态互斥：加载骨架 → 已绑定账号卡 / 待填表单。由 admin.js 切 .hidden -->
               <div id="cred-loading-skeleton" class="cred-loading-skeleton">
                 <div class="skeleton-spinner"></div>
                 <span>正在获取 X 账号凭据状态...</span>
               </div>
 
-              <!-- Active Logged-in X Account Card -->
               <div id="x-cookie-account-box" class="x-cookie-account-card hidden">
                 <div class="x-account-left">
                   <img id="x-account-avatar" class="x-account-avatar-img" src="https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png" alt="X Avatar">
@@ -216,7 +198,6 @@
                     <span id="x-account-handle" class="x-account-screen-handle">@x_user</span>
                   </div>
                 </div>
-
                 <div class="x-account-actions">
                   <button id="btn-logout-x-account" class="btn-secondary-action btn-danger-full">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#log-out"/></svg>
@@ -225,7 +206,6 @@
                 </div>
               </div>
 
-              <!-- Cookie Form Wrapper -->
               <div id="cookie-form-wrapper" class="hidden">
                 <div class="guide-banner">
                   <div class="guide-head">
@@ -241,19 +221,16 @@
                       <label for="input-ct0"><code>ct0</code> (CSRF Token)</label>
                       <input type="text" id="input-ct0" required placeholder="例如: 9f8a7b6c5d4e3f2a..." autocomplete="off">
                     </div>
-
                     <div class="field-group">
                       <label for="input-auth-token"><code>auth_token</code></label>
                       <input type="password" id="input-auth-token" required placeholder="例如: 403db3f572bc45a..." autocomplete="off">
                     </div>
                   </div>
-
                   <div class="form-actions-bar">
                     <label class="remember-checkbox-label">
                       <input type="checkbox" id="chk-remember-cred" checked>
                       <span>在本地安全记住凭据</span>
                     </label>
-
                     <div style="display: flex; gap: 10px;">
                       <button type="button" id="btn-clear-cred" class="btn-secondary-action">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#rotate-ccw"/></svg>
@@ -265,14 +242,11 @@
                       </button>
                     </div>
                   </div>
-
                   <div id="cred-form-msg" class="auth-error-banner hidden" style="margin-top: 14px;"></div>
                 </form>
               </div>
-
             </section>
 
-            <!-- Panel 2: Smart Sync Engine & Full-Width Terminal -->
             <section class="vault-panel-card" id="panel-sync">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -281,10 +255,8 @@
                 </div>
               </div>
 
-              <!-- 同步进来的新博主默认可见性。
-                   默认「仅站长可见」：同步是批量拉进来的，先落成私密由站长挑选后再公开，
-                   比事后一个一个点「全站下架」好 —— 下架是全局的，会连带影响后来
-                   收录同一位博主的其他用户。 -->
+              <!-- 默认「仅站长可见」：同步是批量拉的，先落成私密挑完再公开，比事后逐个
+                   点全站下架好 —— 下架是全局的，会连带影响后来收录同一位博主的其他用户。 -->
               <label class="sync-visibility-toggle" for="sync-default-visibility">
                 <span class="svt-label">同步进来的新博主</span>
                 <select id="sync-default-visibility">
@@ -293,12 +265,8 @@
                 </select>
               </label>
 
-              <!-- 每批多少位：Cloudflare Free 每次 Worker 调用只有 50 次 D1 查询额度，
-                   而每位博主约 8 次 —— 所以 Free 上必须设成 5。本地/Paid 可以调大，
-                   批越大总请求数越少、越快。 -->
-              <!-- 查询预算：Cloudflare Free 每次 Worker 调用只有 50 次 D1 查询，
-                   所以默认 42（留 8 次给状态读写）。Workers Paid 是 1000，可以调大。
-                   新博主约 8 次查询、已在库的跳过只花 1 次 —— 所以按预算扣比按人数准。 -->
+              <!-- 按查询数而不是人数扣预算：新博主约 8 次 D1 查询，已在库的跳过只花 1 次。
+                   Cloudflare Free 每次 Worker 调用上限 50 次，所以默认 42（留 8 次给状态读写）。 -->
               <label class="sync-visibility-toggle" for="sync-budget">
                 <span class="svt-label">每批查询预算</span>
                 <select id="sync-budget">
@@ -318,7 +286,6 @@
                 </button>
                 <button id="btn-stop-sync" class="btn-ghost-sm hidden" type="button"><span>停止</span></button>
 
-                <!-- Sync Live Progress Bar (Inline Docked) -->
                 <div id="sync-progress-box" class="sync-progress-box-inline">
                   <div class="sync-progress-header">
                     <span id="sync-progress-status-text">增量同步引擎待命中</span>
@@ -330,7 +297,6 @@
                 </div>
               </div>
 
-              <!-- 320px 宽幅极客终端 (Permanently visible) -->
               <div id="terminal-log-container" class="terminal-log-box is-expanded">
                 <div class="terminal-top">
                   <span class="t-dot red"></span>
@@ -340,15 +306,12 @@
                 </div>
                 <div id="terminal-log-output" class="terminal-content">> Engine ready. Waiting for command.</div>
               </div>
-
             </section>
 
           </div>
 
-          <!-- 【右侧 38% 区域】：数据资产灾备 + 基础设施规格 -->
           <div class="bento-col-side">
-            
-            <!-- Panel 3: Data Management, Backup & Cloud Actions -->
+
             <section class="vault-panel-card" id="panel-data-management">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -358,13 +321,11 @@
               </div>
 
               <div style="display: flex; flex-direction: column; gap: 14px;">
-                <!-- 1. GitHub Actions 离线任务调度 -->
                 <div class="action-subgroup">
                   <div class="action-subgroup-title">
                     <svg width="13" height="13" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#clock"/></svg>
                     <span>GitHub Actions 离线任务 (脱机慢速)</span>
                   </div>
-
                   <div style="display: flex; flex-direction: column; gap: 10px;">
                     <button id="btn-trigger-gh-full-sync" class="btn-primary-action full-w btn-task-card">
                       <div class="btn-task-content">
@@ -375,7 +336,6 @@
                         <span class="btn-task-desc">云端后台逐页慢速巡检全量博主，刷新资料与 R2 缓存</span>
                       </div>
                     </button>
-
                     <a href="https://github.com/wmfan2002-cloud/x-vault/actions" target="_blank" rel="noopener noreferrer" class="link-actions-status">
                       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
                       <span>在 GitHub 中查看 Actions 实时运行日志 ↗</span>
@@ -385,7 +345,6 @@
 
                 <div style="height: 1px; background: var(--border-subtle);"></div>
 
-                <!-- 2. 本地 JSON 灾备 -->
                 <div class="action-subgroup">
                   <div class="action-subgroup-title">
                     <svg width="13" height="13" fill="none" stroke="var(--text-muted)" stroke-width="2" aria-hidden="true"><use href="/icons.svg#download-cloud"/></svg>
@@ -403,7 +362,6 @@
                   </div>
                 </div>
 
-                <!-- 3. 高危操作 -->
                 <div class="danger-zone-card">
                   <div class="danger-zone-head">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#alert-triangle-solid"/></svg>
@@ -417,7 +375,7 @@
               </div>
             </section>
 
-            <!-- Panel 4: System Infrastructure -->
+            <!-- 规格牌：纯静态文案，没有 id，admin.js 不碰它 -->
             <section class="vault-panel-card">
               <div class="panel-heading" style="margin-bottom: 14px;">
                 <svg width="16" height="16" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#cpu"/></svg>
@@ -452,15 +410,15 @@
             </section>
 
           </div>
-
         </div>
-
       </div>
 
-      <!-- ==================== TAB PANE 2: 博主档案管理 (Blogger Vault Management) ==================== -->
+      <!-- ─── Tab 2 · 博主档案管理 ──────────────────────────────────────
+           工具条（搜索 / 状态筛选 / 排序）+ 列表容器 + 分页。
+           列表行由 admin.js 渲染进 #blogger-list-container，这里只放骨架。 -->
       <div id="tab-pane-bloggers" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-bloggers">
-        
         <section class="vault-panel-card blogger-vault-panel" id="panel-bloggers">
+
           <div class="panel-header-line">
             <div class="panel-heading">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#users-cog"/></svg>
@@ -487,9 +445,7 @@
             </div>
           </div>
 
-          <!-- Toolbar: Search, Filter Tabs, Sorter -->
           <div class="blogger-vault-toolbar">
-            <!-- Search Box -->
             <div class="blogger-search-wrapper">
               <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#search"/></svg>
               <input type="text" id="blogger-search-input" placeholder="搜索博主昵称 / @Handle / Bio 简介..." autocomplete="off">
@@ -498,7 +454,8 @@
               </button>
             </div>
 
-            <!-- Filter Tabs (React Bits CountUp) -->
+            <!-- 四种状态不是同一个维度：可见与否取决于「屏蔽」与「归属可见性」两件事。
+                 title 里写清区别，否则「待公开」和「已屏蔽」很容易被当成一回事。 -->
             <div class="blogger-filter-tabs">
               <button class="filter-tab-btn active" data-status="all">
                 <span>全部</span>
@@ -518,47 +475,17 @@
               </button>
             </div>
 
-            <!-- Sort Dropdown (Custom UI Dropdown) -->
+            <!-- 七个排序项由 admin.js 的 SORT_OPTIONS 生成，不再逐条写死在标记里 -->
             <div class="custom-select-box blogger-sort-select-box" id="blogger-sort-select-box">
               <button class="select-trigger-btn blogger-sort-trigger-btn" id="blogger-sort-trigger-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
                 <svg class="sort-prefix-icon" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#sort-desc"/></svg>
                 <span id="blogger-sort-current-text">最新归档优先</span>
                 <svg class="arrow-icon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#chevron-down"/></svg>
               </button>
-              <div class="select-dropdown-menu hidden" id="blogger-sort-menu" role="listbox">
-                <div class="menu-item active" data-val="backed_up_at_desc" role="option">
-                  <span>最新归档优先</span>
-                  <svg class="check-icon" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-                <div class="menu-item" data-val="backed_up_at_asc" role="option">
-                  <span>最早归档优先</span>
-                  <svg class="check-icon hidden" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-                <div class="menu-item" data-val="clicks_desc" role="option">
-                  <span>热度由高到低</span>
-                  <svg class="check-icon hidden" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-                <div class="menu-item" data-val="clicks_asc" role="option">
-                  <span>热度由低到高</span>
-                  <svg class="check-icon hidden" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-                <div class="menu-item" data-val="followers_desc" role="option">
-                  <span>粉丝量由高到低</span>
-                  <svg class="check-icon hidden" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-                <div class="menu-item" data-val="followers_asc" role="option">
-                  <span>粉丝量由低到高</span>
-                  <svg class="check-icon hidden" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-                <div class="menu-item" data-val="name_asc" role="option">
-                  <span>博主昵称 A-Z</span>
-                  <svg class="check-icon hidden" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
-                </div>
-              </div>
+              <div class="select-dropdown-menu hidden" id="blogger-sort-menu" role="listbox"></div>
             </div>
           </div>
 
-          <!-- Blogger List Container with Spotlight Glow -->
           <div id="blogger-list-container" class="blogger-list-container">
             <div class="blogger-list-loading">
               <div class="skeleton-spinner"></div>
@@ -566,7 +493,6 @@
             </div>
           </div>
 
-          <!-- Pagination Bar -->
           <div class="blogger-pagination-bar" id="blogger-pagination-bar">
             <div class="pagination-info" id="blogger-pagination-info">
               显示 0 - 0 / 共 0 位博主
@@ -584,88 +510,19 @@
             </div>
           </div>
         </section>
-
       </div>
 
-      <!-- ==================== TAB PANE 3: 数据统计分析 (Data Statistics & Analytics) ==================== -->
+      <!-- ─── Tab 3 · 数据统计分析 ──────────────────────────────────────
+           六格 KPI + 三行图表区。KPI 卡与健康度胶囊结构完全同形，
+           由 admin.js 的 KPI_CARDS / HEALTH_PILLS 生成，不再逐个手写。
+           三张 canvas 由 Chart.js 画，容器高度写在标记里（Chart 需要定高父容器）。 -->
       <div id="tab-pane-analytics" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-analytics">
-        
-        <!-- 6 联排核心 KPI Bento 指标卡片 -->
-        <section class="analytics-kpi-grid">
-          <!-- KPI 1: 全站累计点击跳转 -->
-          <div class="kpi-card highlight-glow">
-            <div class="kpi-icon-wrap icon-flame">
-              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-value" id="kpi-val-clicks">0</span>
-              <span class="kpi-label">本站全场景点击跳转</span>
-            </div>
-          </div>
 
-          <!-- KPI 2: 总归档博主数 -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrap icon-blue">
-              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#users"/></svg>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-value" id="kpi-val-total">0</span>
-              <span class="kpi-label">归档博主总人数</span>
-            </div>
-          </div>
+        <section class="analytics-kpi-grid" id="analytics-kpi-grid"></section>
 
-          <!-- KPI 3: 全网总粉丝覆盖 -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrap icon-gold">
-              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#star"/></svg>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-value" id="kpi-val-followers">0</span>
-              <span class="kpi-label">全网总粉丝覆盖规模</span>
-            </div>
-          </div>
-
-          <!-- KPI 4: 产生点击的活跃博主 -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrap icon-emerald">
-              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#check-circle"/></svg>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-value" id="kpi-val-active-creators">0</span>
-              <span class="kpi-label">受访互动博主数</span>
-            </div>
-          </div>
-
-          <!-- KPI 5: 蓝标官方认证率 -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrap icon-cyan">
-              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#badge-check"/></svg>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-value" id="kpi-val-verified-rate">0%</span>
-              <span class="kpi-label">X 官方认证比例</span>
-            </div>
-          </div>
-
-          <!-- KPI 6: R2 对象存储媒体数 -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrap icon-purple">
-              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#box"/></svg>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-value" id="kpi-val-r2-count">0</span>
-              <span class="kpi-label">R2 高清图片冷备</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- Analytics Visualizations Bento Grid -->
         <div class="analytics-bento-layout">
-          
-          <!-- Row 1: Left (本站点击热度 TOP 10) + Right (点击来源渠道分布饼图) -->
+
           <div class="analytics-row-split">
-            
-            <!-- Left: 本站点击热度 TOP 10 榜单 -->
             <section class="vault-panel-card analytics-card flex-1">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -675,7 +532,6 @@
                 <span class="analytics-tag-pill spark">全站综合交互</span>
               </div>
               <p class="analytics-card-desc">统计访客在画廊卡片、时光档案与抽卡探索等场景中的累计点击跳转</p>
-              
               <div class="leaderboard-list-container" id="analytics-click-top-list">
                 <div class="blogger-list-loading">
                   <div class="skeleton-spinner"></div>
@@ -684,7 +540,6 @@
               </div>
             </section>
 
-            <!-- Right: 点击来源场景贡献分布 (Doughnut) -->
             <section class="vault-panel-card analytics-card side-card">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -694,25 +549,19 @@
                 <span class="analytics-tag-pill primary">渠道拆解</span>
               </div>
               <p class="analytics-card-desc">对比画廊卡片、时光变迁与抽卡界面的点击贡献比例</p>
-
               <div class="chart-canvas-wrap doughnut-wrap">
                 <canvas id="chart-click-sources" height="200"></canvas>
               </div>
-
-              <!-- Custom Styled Legend Bar -->
+              <!-- 图例自己画，不用 Chart.js 内置的 —— 它的圆点与配色跟这套设计对不上 -->
               <div class="custom-chart-legend" id="chart-sources-legend">
                 <div class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span><span>画廊卡片: <b id="leg-val-card">0%</b></span></div>
                 <div class="legend-item"><span class="legend-dot" style="background:#a855f7;"></span><span>时光抽屉: <b id="leg-val-timeline">0%</b></span></div>
                 <div class="legend-item"><span class="legend-dot" style="background:#ec4899;"></span><span>抽卡探索: <b id="leg-val-roulette">0%</b></span></div>
               </div>
             </section>
-
           </div>
 
-          <!-- Row 2: Left (全网粉丝总榜 TOP 10) + Right (粉丝量级梯度分布柱状图) -->
           <div class="analytics-row-split">
-            
-            <!-- Left: 全网粉丝规模 TOP 10 榜单 -->
             <section class="vault-panel-card analytics-card flex-1">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -722,7 +571,6 @@
                 <span class="analytics-tag-pill gold">创作者影响力</span>
               </div>
               <p class="analytics-card-desc">按 X 官方公开粉丝量排序的头部创作者排行榜</p>
-              
               <div class="leaderboard-list-container" id="analytics-followers-top-list">
                 <div class="blogger-list-loading">
                   <div class="skeleton-spinner"></div>
@@ -731,7 +579,6 @@
               </div>
             </section>
 
-            <!-- Right: 粉丝量级梯度分布 (Horizontal Bar) -->
             <section class="vault-panel-card analytics-card side-card">
               <div class="panel-header-line">
                 <div class="panel-heading">
@@ -741,15 +588,12 @@
                 <span class="analytics-tag-pill emerald">梯队结构</span>
               </div>
               <p class="analytics-card-desc">展示从超头部 (≥1M) 到潜力博主的人数分层分布</p>
-
               <div class="chart-canvas-wrap bar-wrap">
                 <canvas id="chart-follower-tiers" height="220"></canvas>
               </div>
             </section>
-
           </div>
 
-          <!-- Row 3: 账号健康度与蓝V分布 (Doughnut & Cards) -->
           <section class="vault-panel-card analytics-card">
             <div class="panel-header-line">
               <div class="panel-heading">
@@ -758,58 +602,22 @@
               </div>
               <span class="analytics-tag-pill cyan">资产风控</span>
             </div>
-
             <div class="health-breakdown-grid">
               <div class="health-chart-col">
                 <div class="chart-canvas-wrap doughnut-wrap" style="height: 180px;">
                   <canvas id="chart-account-health" height="180"></canvas>
                 </div>
               </div>
-
-              <div class="health-cards-col">
-                <div class="health-stat-pill active">
-                  <div class="pill-indicator dot-green"></div>
-                  <div class="pill-text">
-                    <span class="pill-title">正常展示中</span>
-                    <span class="pill-val" id="health-val-active">0 人</span>
-                  </div>
-                </div>
-
-                <div class="health-stat-pill blocked">
-                  <div class="pill-indicator dot-red"></div>
-                  <div class="pill-text">
-                    <span class="pill-title">画廊已屏蔽</span>
-                    <span class="pill-val" id="health-val-blocked">0 人</span>
-                  </div>
-                </div>
-
-                <div class="health-stat-pill suspended">
-                  <div class="pill-indicator dot-yellow"></div>
-                  <div class="pill-text">
-                    <span class="pill-title">X 官方封号 / 注销</span>
-                    <span class="pill-val" id="health-val-suspended">0 人</span>
-                  </div>
-                </div>
-
-                <div class="health-stat-pill verified">
-                  <div class="pill-indicator dot-blue"></div>
-                  <div class="pill-text">
-                    <span class="pill-title">X 蓝标认证创作者</span>
-                    <span class="pill-val" id="health-val-verified">0 人</span>
-                  </div>
-                </div>
-              </div>
+              <div class="health-cards-col" id="health-cards-col"></div>
             </div>
           </section>
 
         </div>
-
       </div>
 
-      <!-- ==================== TAB PANE 4: 发布公告 ====================
-           公告会显示在每个访客页面顶部的横幅里。**发布权限只在管理台** ——
-           普通登录用户没有任何写入入口。
-           正文只存纯文本、前端 escapeHtml 渲染：公告出现在所有访客页面上，
+      <!-- ─── Tab 4 · 发布公告 ──────────────────────────────────────────
+           公告显示在访客页面顶部的横幅里。发布权限只在管理台，普通登录用户没有写入入口。
+           正文只存纯文本、渲染时 escapeHtml：公告出现在所有访客页面上，
            允许 HTML 就等于给全站开一个存储型 XSS 面。 -->
       <div id="tab-pane-announcements" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-announcements">
         <section class="vault-panel-card">
@@ -867,11 +675,10 @@
         </section>
       </div>
 
-      <!-- ==================== TAB PANE 5: 投稿记录 ====================
-           首页的投稿是「无审核，提交即收录」。不审核是产品决定，但站长总得有个
-           地方看见都进了什么、谁在刷、被拒的是哪些 —— 否则唯一的发现途径是
-           有人投了脏东西之后自己在画廊里翻出来。
-           这个 Tab 和它背后的 /api/admin/submissions 此前都不存在。 -->
+      <!-- ─── Tab 5 · 投稿记录 ──────────────────────────────────────────
+           首页投稿是「无审核，提交即收录」。不审核是产品决定，但站长总得有个地方
+           看见都进了什么、谁在刷、被拒的是哪些 —— 否则唯一的发现途径是有人投了
+           脏东西之后自己在画廊里翻出来。 -->
       <div id="tab-pane-submissions" class="admin-tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-submissions">
         <section class="vault-panel-card">
           <div class="panel-header-line">
@@ -905,7 +712,11 @@
 
     </main>
 
-    <!-- Export Handles Modal -->
+    <!-- ─── 三个模态框 ────────────────────────────────────────────────
+         都用 .inspector-backdrop 做遮罩，.btn-close-modal 统一关闭。
+         内联 style 是存量写法，还没搬进 style.css —— 搬动会改变层叠顺序，
+         留给后面单独处理（见 REFACTOR-HANDOFF.md 阶段 1）。 -->
+
     <div id="modal-export-handles" class="inspector-backdrop hidden">
       <div class="auth-card-window" style="max-width: 560px; text-align: left;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -933,7 +744,6 @@
       </div>
     </div>
 
-    <!-- 添加博主档案 -->
     <div id="modal-add-blogger" class="inspector-backdrop hidden">
       <div class="auth-card-window" style="max-width: 480px; text-align: left;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -965,7 +775,6 @@
       </div>
     </div>
 
-    <!-- 补回头像 -->
     <div id="modal-refetch" class="inspector-backdrop hidden">
       <div class="auth-card-window" style="max-width: 620px; text-align: left;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -1009,13 +818,11 @@
       </div>
     </div>
 
-    <!-- Hidden file input for JSON import -->
+    <!-- 导入 JSON 用的隐藏文件框，由「导入恢复」按钮代点 -->
     <input type="file" id="file-input-backup" accept=".json" class="hidden">
 
-    <!-- Toast Notification Overlay -->
     <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
-    <!-- Minimal Modern Footer -->
     <footer class="v2-footer">
       <div class="footer-inner">
         <div>

@@ -116,7 +116,9 @@ const SCENES = [
   { name: 'gallery-light', path: '/', size: [1440, 900], theme: 'light' },
   { name: 'gallery-list-view', path: '/', size: [1440, 900], act: ['.view-tab-btn[data-view="list"]'] },
   { name: 'gallery-filter-hot', path: '/', size: [1440, 900], act: ['.f-pill[data-filter="hot"]'] },
-  { name: 'inspector-drawer', path: '/', size: [1440, 900], act: ['.blogger-card'], wait: '#inspector-drawer' },
+  // 点卡片开抽屉。settle 等的是遮罩真的显示出来 —— 瀑布流在按实测高度重排，
+  // 点击可能落在重排的空档里而整个丢掉，只 wait 抽屉元素查不出来（它一直在 DOM 里）。
+  { name: 'inspector-drawer', path: '/', size: [1440, 900], act: ['.blogger-card'], wait: '#inspector-drawer', settle: '#inspector-backdrop:not(.hidden)' },
   // 抽卡转盘全程由 setTimeout 驱动（老虎机滚动，然后 140ms 落定、再 160ms 浮出操作栏），
   // 冻结动画管不到 JS 计时器。不等它走完，采样会撞在中途 —— 同一份代码两次跑，
   // 一次截到操作栏、一次没截到。settle 就是等这一刻。
@@ -238,10 +240,27 @@ async function snap(label) {
     });
     for (const sel of scene.act || []) {
       const el = page.locator(sel).first();
-      if (await el.count()) await el.click({ timeout: 5000 }).catch(() => {});
+      if (!(await el.count())) continue;
+      await el.click({ timeout: 5000 }).catch(() => {});
+      // 声明了 settle 的场景：点击可能被重排吞掉，没生效就重试几次
+      if (scene.settle) {
+        for (let i = 0; i < 4; i++) {
+          if (await page.locator(scene.settle).count()) break;
+          await page.waitForTimeout(300);
+          await el.click({ timeout: 5000 }).catch(() => {});
+        }
+      }
     }
     if (scene.wait) await page.waitForSelector(scene.wait, { state: 'visible', timeout: 5000 }).catch(() => {});
-    if (scene.settle) await page.waitForSelector(scene.settle, { timeout: 20000 }).catch(() => {});
+    if (scene.settle) {
+      // 等不到就直接失败。静默采一张「界面还没就绪」的快照，会在下一次比对里
+      // 变成一堆看不懂的差异 —— 那正是 inspector-drawer 出过的问题。
+      try {
+        await page.waitForSelector(scene.settle, { timeout: 20000 });
+      } catch {
+        throw new Error(`场景 ${scene.name}: 等不到 ${scene.settle}，界面没到目标状态，快照作废`);
+      }
+    }
     if (scene.hover) {
       const target = page.locator(scene.hover).first();
       if (await target.count()) {
