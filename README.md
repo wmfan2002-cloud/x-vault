@@ -1,4 +1,4 @@
-# X-符离集 · x-vault
+# X-符离集 · x-vault（https://flj.wmxs.cloud/）
 
 X (Twitter) 博主的策展画廊 + 永久归档。
 
