@@ -27,6 +27,10 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUB = resolve(ROOT, 'public');
 const ASSETS = ['app.js', 'admin.js', 'style.css', 'logo-icon.png'];
+// icons.svg 刻意不在这里：它是被 <use href="/icons.svg#name"> 引用的，带片段标识，
+// 打戳要写成 `/icons.svg?v=hash#name`，而且四个文件（含两个 js）里都有引用，
+// 不是只改 PAGES 就够。它在 public/_headers 里是 no-cache，浏览器每次都会校验，
+// 打戳带来的收益为零。
 const PAGES = ['index.html', 'admin.html'];
 
 // href 用于 <link>，src 用于 <script>/<img>。图标两种都出现（favicon 是 link，

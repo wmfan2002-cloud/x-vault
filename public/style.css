@@ -2645,31 +2645,6 @@ code, kbd {
   z-index: 1;
 }
 
-.admin-welcome-hero {
-  margin-bottom: 24px;
-  background: var(--bg-surface);
-  backdrop-filter: blur(var(--blur-thick)) saturate(var(--material-saturate));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 24px 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-}
-
-.admin-welcome-hero::before {
-  content: '';
-  position: absolute;
-  top: -60px;
-  right: 10%;
-  width: 300px;
-  height: 180px;
-  background: radial-gradient(circle, var(--accent-gold-subtle) 0%, transparent 70%);
-  pointer-events: none;
-}
-
 .admin-shell-container {
   max-width: 1440px;
   width: 100%;
@@ -3629,12 +3604,6 @@ code, kbd {
   margin: 0 4px;
 }
 
-.engine-badge {
-  font-family: var(--font-mono);
-  color: var(--accent-primary);
-  font-weight: 600;
-}
-
 .footer-shortcuts kbd {
   padding: 1px 5px;
   font-size: 10.5px;
@@ -3656,10 +3625,6 @@ code, kbd {
 
   .header-search-wrap {
     max-width: 320px;
-  }
-
-  .hero-metrics-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -3722,10 +3687,6 @@ code, kbd {
 
   .hero-description {
     font-size: 13px;
-  }
-
-  .hero-metrics-grid {
-    grid-template-columns: 1fr;
   }
 
   .hero-unified-capsule {
@@ -5541,25 +5502,6 @@ code, kbd {
   padding: 44px 20px; text-align: center;
   font-size: 13px; line-height: 1.75; color: var(--text-muted);
 }
-.up-stat {
-  padding: 9px 13px; margin-bottom: 14px;
-  background: var(--bg-chip); border-radius: var(--radius-md);
-  font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
-}
-
-.up-row {
-  display: flex; align-items: center; gap: 13px;
-  padding: 11px 0; border-bottom: 1px solid var(--border-subtle);
-}
-.up-row:last-child { border-bottom: none; }
-.up-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-subtle); }
-.up-info { flex: 1; min-width: 0; }
-.up-name { font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.up-badge { font-size: 10px; font-weight: 700; color: var(--accent-verified); }
-.up-handle { display: block; font-family: var(--font-mono); font-size: 11.5px; color: var(--accent-primary); text-decoration: none; }
-.up-handle:hover { text-decoration: underline; }
-.up-followers { font-size: 11px; color: var(--text-muted); }
-.up-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
 .up-btn {
   padding: 6px 11px; background: var(--bg-chip);
@@ -5904,17 +5846,7 @@ code, kbd {
 .tag-chip[class*="tag-c-"].active { background: hsl(var(--tagc)); border-color: hsl(var(--tagc)); color: #fff; }
 .tag-dot { width: 9px; height: 9px; border-radius: 50%; background: hsl(var(--tagc, 220 10% 55%)); flex: none; }
 
-/* 卡片上的标签按钮与圆点 */
-.card-tag-btn {
-  position: absolute; top: 9px; right: 44px; z-index: 3;
-  width: 30px; height: 30px; display: grid; place-items: center;
-  border-radius: 50%; cursor: pointer;
-  border: 1px solid hsla(0,0%,100%,.16); background: hsla(0,0%,0%,.42);
-  color: hsla(0,0%,100%,.82); backdrop-filter: blur(var(--blur-thin)) saturate(var(--material-saturate));
-  transition: background .15s, color .15s, transform .12s;
-}
-.card-tag-btn:hover { background: hsla(0,0%,0%,.62); color: #fff; transform: scale(1.06); }
-.card-tag-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+/* 卡片上的标签圆点 */
 .card-tag-dots {
   position: absolute; left: 10px; bottom: 10px; z-index: 3;
   display: flex; align-items: center; gap: 4px;
@@ -5990,7 +5922,6 @@ code, kbd {
   .vs-btn span:not(.vs-count) { display: none; }
   .mylist-head { padding: 0 16px; }
   .mh-title { font-size: 21px; }
-  .card-tag-btn { right: 42px; }
 }
 
 /* ── 头部自适应：按内容实际宽度设断点，不是拍脑袋的 768 ──────────

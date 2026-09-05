@@ -888,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="btn-task-content">
           <div class="btn-task-title-row" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <svg class="icon-spin-smooth" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <svg class="icon-spin-smooth" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#refresh-ccw-dot"/></svg>
               <span>全量数据深度刷新中</span>
               <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); font-weight: 500;">${runTag}</span>
             </div>
@@ -906,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnTriggerGhFullSync.innerHTML = `
         <div class="btn-task-content">
           <div class="btn-task-title-row">
-            <svg class="icon-spin-smooth" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <svg class="icon-spin-smooth" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#loader"/></svg>
             <span>正在向 GitHub 派发云端任务...</span>
           </div>
           <span class="btn-task-desc">正在验证 PAT 凭据并创建 Workflow Run</span>
@@ -1310,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         bloggerListContainer.innerHTML = `
           <div class="blogger-list-empty">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#alert-circle"/></svg>
             <span>加载失败: ${escapeHtml(json.error)}</span>
           </div>
         `;
@@ -1319,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('loadBloggerVault error:', e);
       bloggerListContainer.innerHTML = `
         <div class="blogger-list-empty">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#alert-circle"/></svg>
           <span>网络请求异常，请刷新重试</span>
         </div>
       `;
@@ -1333,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!Array.isArray(users) || users.length === 0) {
       bloggerListContainer.innerHTML = `
         <div class="blogger-list-empty">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#search-empty"/></svg>
           <span>未检索到匹配的博主档案</span>
         </div>
       `;
@@ -1402,42 +1402,42 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="blogger-name-line">
                 <span class="blogger-row-name">${escapeHtml(u.name)}</span>
                 ${u.verified ? `
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" title="X 官方认证"><path d="M12 2l2.4 2.4 3.4-.4 1.2 3.2 3 1.6-1 3.2 1 3.2-3 1.6-1.2 3.2-3.4-.4L12 22l-2.4-2.4-3.4.4-1.2-3.2-3-1.6 1-3.2-1-3.2 3-1.6 1.2-3.2 3.4.4L12 2z"/><path d="m9 12 2 2 4-4"/></svg>
+                  <svg width="13" height="13" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" title="X 官方认证" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>
                 ` : ''}
                 <span class="blogger-row-handle">@${escapeHtml(u.screen_name)}</span>
                 ${u.is_suspended === 1 ? `
                   <span class="badge-status-pill suspended" style="font-size: 10.5px; padding: 1px 6px;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
                     <span>已封号</span>
                   </span>
                 ` : ''}
                 ${u.is_suspended === 2 ? `
                   <span class="badge-status-pill deleted" style="font-size: 10.5px; padding: 1px 6px;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#alert-circle"/></svg>
                     <span>已注销</span>
                   </span>
                 ` : ''}
                 ${isBlocked ? `
                   <span class="badge-blocked-tag" title="全站下架：对所有人生效。别人收录同一位博主也进不了公开画廊">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
                     <span>全站下架</span>
                   </span>
                 ` : ''}
                 ${isPrivate ? `
                   <span class="badge-private-tag" title="仅站长可见：只影响你这一条归属。别人收录同一位博主并标为公开，它照样会出现在画廊">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#lock"/></svg>
                     <span>仅站长可见</span>
                   </span>
                 ` : ''}
                 ${notOwned ? `
                   <span class="badge-private-tag" title="你没有收录这位博主 —— 它是别人投稿或同步进来的。点「公开」就会收录到你名下并显示在画廊">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#circle-info"/></svg>
                     <span>未收录</span>
                   </span>
                 ` : ''}
                 ${!isBlocked && !inGallery ? `
                   <span class="badge-offgallery-tag" title="此刻不出现在公开画廊。原因：没有任何人把它标为公开${isBlocked ? '，且已被全站下架' : ''}">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18.4 18.4 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#eye-off"/></svg>
                     <span>不在画廊</span>
                   </span>
                 ` : ''}
@@ -1455,40 +1455,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <div class="blogger-row-actions">
               <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="在 X 中打开个人主页">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
               </a>
 
               <button type="button" class="btn-action-icon btn-copy-handle" data-handle="${escapeHtml(u.screen_name)}" title="复制 @${escapeHtml(u.screen_name)}">
-                <svg class="icon-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                <svg class="icon-check hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-success)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg class="icon-copy" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#copy-thin"/></svg>
+                <svg class="icon-check hidden" width="14" height="14" fill="none" stroke="var(--accent-success)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#check-badge"/></svg>
               </button>
 
               <button type="button" class="btn-action-vis ${isPublic ? 'to-private' : 'to-public'}" data-handle="${escapeHtml(u.screen_name)}" data-vis="${isPublic ? 'public' : 'private'}" title="${isPublic ? '仅站长可见：只把你这一条归属撤下，不影响别人收录同一位博主' : (notOwned ? '公开：收录到你名下并显示在画廊' : '公开：让它出现在画廊（前提是没被全站下架）')}">
                 ${isPublic ? `
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#lock"/></svg>
                   <span>转私密</span>
                 ` : `
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#eye-thin"/></svg>
                   <span>公开</span>
                 `}
               </button>
 
               <button type="button" class="btn-action-icon btn-release-blogger" data-handle="${escapeHtml(u.screen_name)}" data-name="${escapeHtml(u.name || '')}" title="撤出公开仓：只删公开仓这一条归属，别人的私人收录保留。撤出后若无人引用会连带回收数据（会再要求确认）">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#log-out-thin"/></svg>
               </button>
 
               <button type="button" class="btn-action-block ${isBlocked ? 'to-unblock' : 'to-block'}" data-handle="${escapeHtml(u.screen_name)}" data-blocked="${isBlocked ? '1' : '0'}" title="${isBlocked ? '解除全站下架' : '全站下架：对所有人生效。只想自己不看请改用「转私密」'}">
                 ${isBlocked ? `
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#eye-wide"/></svg>
                   <span>解除下架</span>
                 ` : `
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
                   <span>全站下架</span>
                 `}
               </button>
 
               <button type="button" class="btn-action-icon btn-delete-blogger" data-handle="${escapeHtml(u.screen_name)}" data-name="${escapeHtml(u.name || '')}" data-owners="${u.owner_count || 0}" data-mine="${isPublic || isPrivate ? '1' : '0'}" title="彻底删除档案（不可恢复，区别于「屏蔽」）">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                <svg width="14" height="14" fill="none" stroke="var(--accent-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#trash-outline"/></svg>
               </button>
             </div>
           </div>
@@ -1759,7 +1759,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btn.setAttribute('data-blocked', '1');
           btn.setAttribute('title', '解除全站下架');
           btn.innerHTML = `
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#eye-wide"/></svg>
             <span>解除下架</span>
           `;
           if (!blockedTag && nameLine) {
@@ -1767,7 +1767,7 @@ document.addEventListener('DOMContentLoaded', () => {
             blockedTag.className = 'badge-blocked-tag';
             blockedTag.title = '全站下架：对所有人生效。别人收录同一位博主也进不了公开画廊';
             blockedTag.innerHTML = `
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
               <span>全站下架</span>
             `;
             nameLine.appendChild(blockedTag);
@@ -1778,7 +1778,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btn.setAttribute('data-blocked', '0');
           btn.setAttribute('title', '全站下架：对所有人生效。只想自己不看请改用「转私密」');
           btn.innerHTML = `
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
             <span>全站下架</span>
           `;
           blockedTag?.remove();
@@ -1792,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (bloggerListContainer.querySelectorAll('.blogger-row:not(.is-collapsing)').length === 0) {
               bloggerListContainer.innerHTML = `
                 <div class="blogger-list-empty">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#search-empty"/></svg>
                   <span>当前筛选下暂无博主档案</span>
                 </div>
               `;
@@ -2073,7 +2073,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (totalClicks === 0 || maxClick === 0) {
       analyticsClickTopList.innerHTML = `
         <div class="blogger-list-empty" style="padding: 36px 16px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-spark)" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          <svg width="24" height="24" fill="none" stroke="var(--accent-spark)" stroke-width="2" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
           <span style="color: var(--text-main); font-weight: 600; font-size: 13.5px;">本站点击热度正在累积中</span>
           <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">访客在画廊卡片、时光档案与抽卡探索中跳转 X 主页后，将在此实时自动生成热度排行榜。</span>
         </div>
@@ -2103,7 +2103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="leaderboard-info">
               <div class="leaderboard-name-row">
                 <span class="leaderboard-name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</span>
-                ${u.verified ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5"><path d="M12 2l2.4 2.4 3.4-.4 1.2 3.2 3 1.6-1 3.2 1 3.2-3 1.6-1.2 3.2-3.4-.4L12 22l-2.4-2.4-3.4.4-1.2-3.2-3-1.6 1-3.2-1-3.2 3-1.6 1.2-3.2 3.4.4L12 2z"/><path d="m9 12 2 2 4-4"/></svg>` : ''}
+                ${u.verified ? `<svg width="12" height="12" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>` : ''}
               </div>
               <span class="leaderboard-handle">@${escapeHtml(u.screen_name)}</span>
             </div>
@@ -2117,12 +2117,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <span class="leaderboard-click-badge" title="累计点击 ${uTotal} 次">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
               <span>${uTotal}</span>
             </span>
 
             <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="前往 X 主页">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
             </a>
           </div>
         </div>
@@ -2159,7 +2159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="leaderboard-info">
               <div class="leaderboard-name-row">
                 <span class="leaderboard-name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</span>
-                ${u.verified ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5"><path d="M12 2l2.4 2.4 3.4-.4 1.2 3.2 3 1.6-1 3.2 1 3.2-3 1.6-1.2 3.2-3.4-.4L12 22l-2.4-2.4-3.4.4-1.2-3.2-3-1.6 1-3.2-1-3.2 3-1.6 1.2-3.2 3.4.4L12 2z"/><path d="m9 12 2 2 4-4"/></svg>` : ''}
+                ${u.verified ? `<svg width="12" height="12" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>` : ''}
               </div>
               <span class="leaderboard-handle">@${escapeHtml(u.screen_name)}</span>
             </div>
@@ -2175,7 +2175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
 
             <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="前往 X 主页">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
             </a>
           </div>
         </div>
@@ -2362,7 +2362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toast.className = 'toast-item';
     toast.innerHTML = `
       <span class="toast-svg-icon" style="display: flex; align-items: center; color: var(--accent-primary);">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#check-circle"/></svg>
       </span>
       <span>${escapeHtml(message)}</span>
     `;

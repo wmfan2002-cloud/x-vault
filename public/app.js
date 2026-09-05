@@ -87,17 +87,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // SVG Icon Templates (Iconify / Lucide & Phosphor Standard)
   const ICONS = {
-    verifiedNative: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><polyline points="20 6 9 17 4 12"/></svg>`,
-    users: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-    external: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
-    eye: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
-    ghost: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>`,
-    history: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`,
-    stamp: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`,
-    candle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-.5 2.5-2 3.5-2 5a2 2 0 0 0 4 0c0-1.5-1.5-2.5-2-5z"/><path d="M8 11h8v10H8z"/></svg>`,
-    markdown: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="7 15 7 9 10 12 13 9 13 15"/><polyline points="18 12 16 14 16 10"/></svg>`,
-    copy: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
-    chevronDown: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`
+    verifiedNative: `<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.2" aria-hidden="true"><use href="/icons.svg#check-badge"/></svg>`,
+    users: `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#users"/></svg>`,
+    external: `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>`,
+    eye: `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#eye"/></svg>`,
+    ghost: `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#ghost"/></svg>`,
+    history: `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#history"/></svg>`,
+    stamp: `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#stamp"/></svg>`,
+    candle: `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#candle"/></svg>`,
+    markdown: `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#markdown"/></svg>`,
+    copy: `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#copy"/></svg>`,
+    chevronDown: `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#chevron-down-thick"/></svg>`
   };
 
   // Canvas Color Extraction Engine for Dynamic Ambient Glow
@@ -644,11 +644,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (shape === 'star') {
         p.classList.add('celebration-star-particle');
         const size = 12 + Math.random() * 10;
-        p.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="${color}" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        p.innerHTML = `<svg width="${size}" height="${size}" fill="${color}" stroke="${color}" stroke-width="1" aria-hidden="true"><use href="/icons.svg#star"/></svg>`;
       } else if (shape === 'diamond') {
         p.classList.add('celebration-star-particle');
         const size = 10 + Math.random() * 8;
-        p.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><polygon points="12 2 22 12 12 22 2 12"/></svg>`;
+        p.innerHTML = `<svg width="${size}" height="${size}" fill="${color}" aria-hidden="true"><use href="/icons.svg#diamond"/></svg>`;
       } else if (shape === 'ribbon') {
         p.classList.add('celebration-confetti-ribbon');
         const w = 5 + Math.random() * 5;
@@ -1229,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <div class="menu-item ${isActive ? 'active' : ''}" data-val="${opt.val}" role="option">
             <span>${opt.text}</span>
-            <svg class="check-icon ${isActive ? '' : 'hidden'}" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <svg class="check-icon ${isActive ? '' : 'hidden'}" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><use href="/icons.svg#check"/></svg>
           </div>
         `;
       }).join('');
@@ -1532,34 +1532,30 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}" type="button"
                   data-handle="${escapeHtml(user.screen_name)}"
                   title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="${isFaved ? '取消收藏' : '加入收藏'}">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#heart-fill-outline"/></svg>
           </button>` : ''}
         ${state.viewMode === 'mine' && currentUser ? `
           <button class="btn-card-vis ${user.visibility === 'private' ? 'is-private' : 'is-public'}" type="button"
                   data-handle="${escapeHtml(user.screen_name)}" data-vis="${escapeHtml(user.visibility || 'public')}"
                   title="${user.visibility === 'private' ? '当前「仅自己可见」，点击公开到画廊' : '当前「公开」，点击改为仅自己可见'}">
             ${user.visibility === 'private' ? `
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><use href="/icons.svg#lock"/></svg>
               <span>仅自己</span>
             ` : `
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><use href="/icons.svg#globe"/></svg>
               <span>公开</span>
             `}
           </button>` : ''}
         ${state.viewMode !== 'all' && currentUser ? `
           <button class="btn-card-tag" type="button" data-id="${escapeHtml(user.id)}" data-handle="${escapeHtml(user.screen_name)}"
                   title="归入标签 / 文件夹">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V4a2 2 0 0 1 2-2h8l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
-            </svg>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#tag"/></svg>
             <span>${(user.tag_ids || []).length ? `标签 ${(user.tag_ids || []).length}` : '标签'}</span>
           </button>` : ''}
         ${state.viewMode === 'mine' && currentUser ? `
           <button class="btn-card-remove" type="button" data-handle="${escapeHtml(user.screen_name)}" data-name="${escapeHtml(user.name || '')}"
                   title="取消收录：只移除这一条归属，公开仓与他人的收录不受影响">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#trash-outline"/></svg>
             <span>取消收录</span>
           </button>` : ''}
         <button class="btn-inspect-profile" type="button">
@@ -2738,9 +2734,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const LEVEL_ICON = {
-    info:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-    warn:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    urgent: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    info:   '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#info"/></svg>',
+    warn:   '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#alert-triangle"/></svg>',
+    urgent: '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><use href="/icons.svg#alert-circle"/></svg>',
   };
   const annLevel = (l) => (['info', 'warn', 'urgent'].includes(l) ? l : 'info');
 
@@ -2814,7 +2810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>` : ''}
       <button class="ann-close" id="ann-close"
               title="${a.pinned ? '本次收起（置顶公告下次访问会再出现）' : '不再显示这条'}" aria-label="关闭公告">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#x-thin"/></svg>
       </button>`;
     bar.classList.remove('hidden');
 

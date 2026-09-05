@@ -42,6 +42,14 @@ export default [
     },
   },
   {
+    // visual-snap 里有大段 page.evaluate 回调，那些代码字面上在 Node 文件里，
+    // 实际在浏览器里执行，所以两套全局都要放行。
+    files: ['scripts/visual-snap.mjs'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
+  {
     rules: {
       // 存量代码在"错误分支里 return fail(...)"这类地方存在函数出口后仍有 return 的写法
       'no-unreachable': 'error',

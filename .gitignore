@@ -31,3 +31,6 @@ _reference/
 
 # 本地工具状态（ZCode/Claude worktree 记录）
 .claude/
+
+# 外观回归快照（截图 + 计算样式），本地产物，不入库
+.visual/
