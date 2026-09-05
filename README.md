@@ -201,5 +201,11 @@ tests/                离线语义 · jsdom 前端 · 端到端
 
 ## License
 
-未指定开源许可证（保留所有权利）。前端部分派生自第三方已发布资源，
-如需开源发布请先自行厘清授权。
+[MIT](LICENSE)。
+
+后端（`functions/`）、迁移（`migrations/`）、脚本（`scripts/`）与测试（`tests/`）为本项目原创，
+MIT 明确覆盖 —— 被复刻的站点从未公开后端，这部分是按其客户端调用点反推后从零编写的。
+
+`public/` 下的前端资源最初派生自 [nv-pu-sa](https://nv-pu-sa.pages.dev/) 已发布的静态资源，
+该来源未附带任何许可证，重构仍在进行中。复用这部分前请先读
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)，那里有逐文件的实测重合度与当前状态。
