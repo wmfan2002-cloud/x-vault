@@ -123,45 +123,46 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   function rgbToHsl(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0, s = 0;
-    const l = (max + min) / 2;
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h *= 60;
-    }
-    return [h, s, l];
+    const [red, green, blue] = [r, g, b].map(channel => channel / 255);
+    const maximum = Math.max(red, green, blue);
+    const minimum = Math.min(red, green, blue);
+    const lightness = (maximum + minimum) / 2;
+    if (maximum === minimum) return [0, 0, lightness];
+
+    const delta = maximum - minimum;
+    const saturation = lightness > 0.5
+      ? delta / (2 - maximum - minimum)
+      : delta / (maximum + minimum);
+    let hue;
+    if (maximum === red) hue = (green - blue) / delta + (green < blue ? 6 : 0);
+    else if (maximum === green) hue = (blue - red) / delta + 2;
+    else hue = (red - green) / delta + 4;
+
+    return [hue * 60, saturation, lightness];
   }
 
   function hslToRgb(h, s, l) {
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
+    const channelAtHue = (low, high, offset) => {
+      const t = offset < 0 ? offset + 1 : offset > 1 ? offset - 1 : offset;
+      if (t < 1 / 6) return low + (high - low) * 6 * t;
+      if (t < 1 / 2) return high;
+      if (t < 2 / 3) return low + (high - low) * (2 / 3 - t) * 6;
+      return low;
     };
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    const r = hue2rgb(p, q, h / 360 + 1/3);
-    const g = hue2rgb(p, q, h / 360);
-    const b = hue2rgb(p, q, h / 360 - 1/3);
-    return `${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}`;
+    const high = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const low = 2 * l - high;
+    const hue = h / 360;
+    const red = channelAtHue(low, high, hue + 1 / 3);
+    const green = channelAtHue(low, high, hue);
+    const blue = channelAtHue(low, high, hue - 1 / 3);
+    return `${Math.round(red * 255)}, ${Math.round(green * 255)}, ${Math.round(blue * 255)}`;
   }
 
   function getFallbackAccent(key) {
     let hash = 0;
     const str = String(key || 'creator');
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
+    for (let index = 0; index < str.length; index++) {
+      hash = (hash << 5) - hash + str.charCodeAt(index);
       hash |= 0;
     }
     return VIBRANT_ACCENTS[Math.abs(hash) % VIBRANT_ACCENTS.length];
