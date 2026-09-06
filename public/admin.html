@@ -713,28 +713,26 @@
     </main>
 
     <!-- ─── 三个模态框 ────────────────────────────────────────────────
-         都用 .inspector-backdrop 做遮罩，.btn-close-modal 统一关闭。
-         内联 style 是存量写法，还没搬进 style.css —— 搬动会改变层叠顺序，
-         留给后面单独处理（见 REFACTOR-HANDOFF.md 阶段 1）。 -->
+         都用 .inspector-backdrop 做遮罩，.btn-close-modal 统一关闭。 -->
 
     <div id="modal-export-handles" class="inspector-backdrop hidden">
-      <div class="auth-card-window" style="max-width: 560px; text-align: left;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="auth-card-window admin-modal-window admin-modal-export-window">
+        <div class="admin-modal-header">
+          <div class="admin-modal-title-group">
             <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#file-text"/></svg>
-            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">博主 Handle 资产导出</h3>
+            <h3 class="admin-modal-title">博主 Handle 资产导出</h3>
           </div>
           <button class="drawer-close-btn btn-close-modal" id="btn-close-export-modal" aria-label="关闭">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#x"/></svg>
           </button>
         </div>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+        <p class="admin-modal-description export-description">
           当前筛选条件下的博主 Handle 清单（每行一个），可用于换号备份或批量回关：
         </p>
-        <div class="terminal-log-box" style="margin-top: 0;">
-          <textarea id="export-handles-textarea" readonly class="terminal-content" style="width: 100%; height: 200px; background: transparent; border: none; resize: none; color: var(--accent-spark); font-family: var(--font-mono); font-size: 12.5px; outline: none;"></textarea>
+        <div class="terminal-log-box admin-modal-terminal">
+          <textarea id="export-handles-textarea" readonly class="terminal-content admin-modal-textarea"></textarea>
         </div>
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+        <div class="admin-modal-actions export-actions">
           <button type="button" id="btn-copy-export-handles" class="btn-primary-action">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#clipboard"/></svg>
             <span>一键复制全部 Handle</span>
@@ -745,26 +743,26 @@
     </div>
 
     <div id="modal-add-blogger" class="inspector-backdrop hidden">
-      <div class="auth-card-window" style="max-width: 480px; text-align: left;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="auth-card-window admin-modal-window admin-modal-add-window">
+        <div class="admin-modal-header">
+          <div class="admin-modal-title-group">
             <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#user-plus"/></svg>
-            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">添加博主档案</h3>
+            <h3 class="admin-modal-title">添加博主档案</h3>
           </div>
           <button class="drawer-close-btn btn-close-modal" aria-label="关闭">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#x"/></svg>
           </button>
         </div>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6;">
+        <p class="admin-modal-description add-description">
           填入 handle 即可，昵称、简介、粉丝数、头像与 Banner 会自动从 X 抓取并归档。
         </p>
         <form id="form-add-blogger" onsubmit="return false;">
-          <label for="input-add-handle" style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px;">博主 Handle</label>
+          <label for="input-add-handle" class="admin-modal-field-label">博主 Handle</label>
           <input type="text" id="input-add-handle" placeholder="例如: karpathy 或 https://x.com/karpathy"
                  autocomplete="off" spellcheck="false"
-                 style="width:100%; padding:11px 13px; background:var(--bg-chip); border:1px solid var(--border-medium); border-radius:11px; color:var(--text-main); font-size:14px; font-family:inherit;">
-          <div id="add-blogger-result" class="hidden" style="margin-top:14px; padding:11px 13px; border-radius:10px; font-size:13px; line-height:1.6;"></div>
-          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+                 class="admin-modal-handle-input">
+          <div id="add-blogger-result" class="hidden admin-modal-result"></div>
+          <div class="admin-modal-actions add-actions">
             <button type="button" class="btn-secondary-action btn-close-modal">取消</button>
             <button type="submit" id="btn-submit-add-blogger" class="btn-primary-action">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#plus"/></svg>
@@ -776,38 +774,38 @@
     </div>
 
     <div id="modal-refetch" class="inspector-backdrop hidden">
-      <div class="auth-card-window" style="max-width: 620px; text-align: left;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="auth-card-window admin-modal-window admin-modal-refetch-window">
+        <div class="admin-modal-header">
+          <div class="admin-modal-title-group">
             <svg width="18" height="18" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#image"/></svg>
-            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main);">补回缺失的头像</h3>
+            <h3 class="admin-modal-title">补回缺失的头像</h3>
           </div>
           <button class="drawer-close-btn btn-close-modal" aria-label="关闭">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#x"/></svg>
           </button>
         </div>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6;">
+        <p class="admin-modal-description refetch-description">
           从旧站继承的档案只留了失效的图片指针，需要重新去 X 抓一份存进自己的 R2。
-          <strong style="color: var(--text-secondary);">已被封号的账号取不回头像</strong>，会自动标记进赛博坟场。
+          <strong class="admin-modal-secondary-emphasis">已被封号的账号取不回头像</strong>，会自动标记进赛博坟场。
         </p>
-        <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px; flex-wrap:wrap;">
-          <div style="font-size:13px; color:var(--text-secondary);">
-            待补：<strong id="refetch-remaining" style="color:var(--accent-gold); font-family:var(--font-mono);">—</strong>
+        <div class="admin-modal-refetch-stats">
+          <div class="admin-modal-stat">
+            待补：<strong id="refetch-remaining" class="admin-modal-stat-value stat-gold">—</strong>
           </div>
-          <div style="font-size:13px; color:var(--text-secondary);">
-            已补回：<strong id="refetch-done" style="color:var(--accent-success); font-family:var(--font-mono);">0</strong>
+          <div class="admin-modal-stat">
+            已补回：<strong id="refetch-done" class="admin-modal-stat-value stat-success">0</strong>
           </div>
-          <div style="font-size:13px; color:var(--text-secondary);">
-            墓碑：<strong id="refetch-tomb" style="color:var(--text-muted); font-family:var(--font-mono);">0</strong>
+          <div class="admin-modal-stat">
+            墓碑：<strong id="refetch-tomb" class="admin-modal-stat-value stat-muted">0</strong>
           </div>
         </div>
-        <div class="sync-progress-track" style="margin-bottom:12px;">
-          <div class="sync-progress-fill" id="refetch-progress-fill" style="width:0%;"></div>
+        <div class="sync-progress-track admin-modal-progress-track">
+          <div class="sync-progress-fill admin-modal-progress-fill" id="refetch-progress-fill"></div>
         </div>
-        <div class="terminal-log-box" style="margin-top:0;">
-          <pre id="refetch-log" class="terminal-content" style="height:200px; overflow-y:auto; margin:0; white-space:pre-wrap; word-break:break-all;">> 点击「开始补图」后在此显示实时进度</pre>
+        <div class="terminal-log-box admin-modal-terminal refetch-terminal">
+          <pre id="refetch-log" class="terminal-content admin-modal-refetch-log">&gt; 点击「开始补图」后在此显示实时进度</pre>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+        <div class="admin-modal-actions refetch-actions">
           <button type="button" class="btn-secondary-action btn-close-modal">关闭</button>
           <button type="button" id="btn-stop-refetch" class="btn-secondary-action hidden">停止</button>
           <button type="button" id="btn-start-refetch" class="btn-primary-action">

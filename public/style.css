@@ -6165,3 +6165,111 @@ code, kbd {
   border: 1px solid hsla(var(--annc) / .4);
 }
 .anncenter-item .ann-body { font-size: 12.5px; }
+
+/* Admin modal composition. Kept at the end so these former inline declarations
+   retain their original precedence over the shared auth and terminal rules. */
+.admin-modal-window {
+  text-align: left;
+}
+.admin-modal-export-window { max-width: 560px; }
+.admin-modal-add-window { max-width: 480px; }
+.admin-modal-refetch-window { max-width: 620px; }
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.admin-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.admin-modal-description {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.export-description { margin-bottom: 12px; }
+.add-description,
+.refetch-description { margin-bottom: 14px; }
+.admin-modal-secondary-emphasis { color: var(--text-secondary); }
+
+.admin-modal-terminal { margin-top: 0; }
+.admin-modal-textarea {
+  width: 100%;
+  height: 200px;
+  background: transparent;
+  border: none;
+  resize: none;
+  color: var(--accent-spark);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  outline: none;
+}
+.admin-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.export-actions,
+.refetch-actions { margin-top: 14px; }
+.add-actions { margin-top: 18px; }
+
+.admin-modal-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 7px;
+}
+.admin-modal-handle-input {
+  width: 100%;
+  padding: 11px 13px;
+  background: var(--bg-chip);
+  border: 1px solid var(--border-medium);
+  border-radius: 11px;
+  color: var(--text-main);
+  font-size: 14px;
+  font-family: inherit;
+}
+.admin-modal-result {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-modal-refetch-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.admin-modal-stat {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.admin-modal-stat-value {
+  font-family: var(--font-mono);
+}
+.admin-modal-stat-value.stat-gold { color: var(--accent-gold); }
+.admin-modal-stat-value.stat-success { color: var(--accent-success); }
+.admin-modal-stat-value.stat-muted { color: var(--text-muted); }
+.admin-modal-progress-track { margin-bottom: 12px; }
+.admin-modal-progress-fill { width: 0%; }
+.admin-modal-refetch-log {
+  height: 200px;
+  overflow-y: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
