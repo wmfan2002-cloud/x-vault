@@ -35,7 +35,8 @@ const strict = process.argv.includes('--strict');
 const sourceCache = new Map();
 
 async function asset(path) {
-  if (!sourceRef) return readFile(path);
+  // Generated archive data is not tracked; both revisions use the same local fixture.
+  if (!sourceRef || path.startsWith('public/data/')) return readFile(path);
   if (!sourceCache.has(path)) sourceCache.set(path, execFileSync('git', ['show', `${sourceRef}:${path}`]));
   return sourceCache.get(path);
 }
@@ -168,6 +169,9 @@ const SCENES = [
   { name: 'gallery-mobile', path: '/', size: [390, 844] },
   { name: 'gallery-light', path: '/', size: [1440, 900], theme: 'light' },
   { name: 'gallery-list-view', path: '/', size: [1440, 900], act: ['.view-tab-btn[data-view="list"]'] },
+  { name: 'gallery-compact-desktop', path: '/', size: [1440, 900], act: ['.view-tab-btn[data-view="compact"]'] },
+  { name: 'gallery-compact-mobile', path: '/', size: [390, 844], act: ['.view-tab-btn[data-view="compact"]'] },
+  { name: 'gallery-resize-roundtrip', path: '/', size: [1440, 900], resizes: [[820, 1100], [390, 844], [1440, 900]] },
   { name: 'gallery-filter-hot', path: '/', size: [1440, 900], act: ['.f-pill[data-filter="hot"]'] },
   // 点卡片开抽屉。settle 等的是遮罩真的显示出来 —— 瀑布流在按实测高度重排，
   // 点击可能落在重排的空档里而整个丢掉，只 wait 抽屉元素查不出来（它一直在 DOM 里）。
@@ -340,6 +344,15 @@ async function snap(label) {
     }
     await page.evaluate(() => document.fonts.ready.then(() => true));
     await page.waitForLoadState('networkidle').catch(() => {});
+    if (scene.resizes) {
+      const cardCount = await page.locator('.blogger-card').count();
+      if (!cardCount) throw new Error('Resize scene requires populated cards');
+      for (const [width, height] of scene.resizes) {
+        await page.setViewportSize({ width, height });
+        await page.waitForTimeout(250);
+        if (await page.locator('.blogger-card').count() !== cardCount) throw new Error('Resize lost loaded cards');
+      }
+    }
     if (scene.admin) {
       await page.evaluate(() => {
         const latency = document.getElementById('hud-d1-latency');
@@ -365,6 +378,11 @@ async function snap(label) {
     // 两次跑滚动量不同就是几万像素的假差异。
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(120);
+    await page.evaluate(async () => {
+      const entering = document.getAnimations().filter(animation =>
+        Number.isFinite(animation.effect?.getComputedTiming().endTime));
+      await Promise.all(entering.map(animation => animation.finished.catch(() => {})));
+    });
     // 动效属性必须在冻结之前采，冻结会把 transition-duration 冲成 0s
     const motion = await collect(page, MOTION_PROPS, base);
     await page.addStyleTag({ content: FREEZE });
@@ -388,7 +406,16 @@ async function snap(label) {
     // canvas 里画的东西本来就不是像素比对能守的东西，截图时藏掉；它自己的尺寸、位置、
     // 透明度仍然在上面的计算样式里被盯着。
     await page.addStyleTag({ content: '#bg-particles-canvas { visibility: hidden !important; }' });
-    await page.screenshot({ path: join(dir, `${scene.name}.png`), fullPage: true, animations: 'disabled' });
+    let screenshot = await page.screenshot({ fullPage: true });
+    let stable = false;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const next = await page.screenshot({ fullPage: true });
+      if (screenshot.equals(next)) { stable = true; break; }
+      screenshot = next;
+    }
+    if (!stable) throw new Error(`Unstable screenshot: ${scene.name}`);
+    await writeFile(join(dir, `${scene.name}.png`), screenshot);
     await page.close();
     done++;
     process.stdout.write(`\r  采集 ${done}/${scenes.length} ${scene.name.padEnd(32)}`);

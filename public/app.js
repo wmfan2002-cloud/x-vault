@@ -1258,6 +1258,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 首屏数据请求尚未完成时，排序菜单也要有完整选项。
+  updateSortMenuForFilter(state.currentFilter);
+
   globalSearch?.addEventListener('input', (e) => {
     state.searchQuery = e.target.value;
     searchClearBtn.classList.toggle('hidden', !state.searchQuery);
@@ -1312,39 +1315,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ==================== 8. Karpathy Discrete Column Masonry Engine (Zero Layout Shifting) ====================
+  // ==================== 8. 分列布局与增量渲染 ====================
   function getResponsiveColumnCount(view) {
-    const w = window.innerWidth;
     if (view === 'list') return 1;
-    if (view === 'compact') {
-      if (w <= 640) return 2;
-      if (w <= 1024) return 3;
-      return 4; // Desktop default
-    }
-    // grid view
-    if (w <= 640) return 1;
-    if (w <= 1024) return 2;
-    return 3; // Desktop default
+    const width = window.innerWidth;
+    const gridColumns = width <= 640 ? 1 : width <= 1024 ? 2 : 3;
+    return gridColumns + (view === 'compact' ? 1 : 0);
   }
 
   function initMasonryStructure() {
     bloggerWall.innerHTML = '';
     bloggerWall.className = `blogger-wall ${state.currentView}-view`;
-    state.columnElements = [];
+    state.columnElements = state.currentView === 'list' ? [bloggerWall]
+      : Array.from({ length: getResponsiveColumnCount(state.currentView) }, () => {
+        const column = document.createElement('div');
+        column.className = 'masonry-column';
+        bloggerWall.appendChild(column);
+        return column;
+      });
+  }
 
-    if (state.currentView === 'list') {
-      // List view is a single vertical container
-      state.columnElements = [bloggerWall];
-    } else {
-      // Responsive discrete columns (Mobile: 1 for Grid / 2 for Compact; Desktop: 3 for Grid / 4 for Compact)
-      const numCols = getResponsiveColumnCount(state.currentView);
-      for (let i = 0; i < numCols; i++) {
-        const col = document.createElement('div');
-        col.className = 'masonry-column';
-        bloggerWall.appendChild(col);
-        state.columnElements.push(col);
+  function nextCardColumn() {
+    if (state.currentView === 'list') return bloggerWall;
+    let target = state.columnElements[0];
+    let height = target.offsetHeight;
+    for (const column of state.columnElements.slice(1)) {
+      const candidateHeight = column.offsetHeight;
+      if (candidateHeight < height) {
+        target = column;
+        height = candidateHeight;
       }
     }
+    return target;
+  }
+
+  // 每插入一张卡后再测列高；批量预计算会改变后续卡片的归属。等高时取最左列。
+  function appendCardRange(start, end) {
+    for (let index = start; index < end; index++) {
+      const card = createBloggerCardElement(state.filteredUsers[index], index);
+      nextCardColumn().appendChild(card);
+    }
+    state.renderedCount = end;
+    infiniteSentinel?.classList.toggle('hidden', end >= state.filteredUsers.length);
   }
 
   let resizeDebounceTimer = null;
@@ -1352,42 +1364,13 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => {
     clearTimeout(resizeDebounceTimer);
     resizeDebounceTimer = setTimeout(() => {
-      const newCols = getResponsiveColumnCount(state.currentView);
-      if (newCols !== activeColCount) {
-        activeColCount = newCols;
-        const currentCount = state.renderedCount;
-        state.renderedCount = 0;
-        initMasonryStructure();
-        // Re-render currently rendered cards count
-        const target = Math.max(PAGE_SIZE, currentCount);
-        const total = state.filteredUsers.length;
-        const renderLimit = Math.min(target, total);
-        
-        for (let i = 0; i < renderLimit; i++) {
-          const user = state.filteredUsers[i];
-          const card = createBloggerCardElement(user, i);
-          if (state.currentView === 'list') {
-            bloggerWall.appendChild(card);
-          } else {
-            let shortestCol = state.columnElements[0];
-            let minHeight = shortestCol.offsetHeight;
-            for (let c = 1; c < state.columnElements.length; c++) {
-              const col = state.columnElements[c];
-              if (col.offsetHeight < minHeight) {
-                minHeight = col.offsetHeight;
-                shortestCol = col;
-              }
-            }
-            shortestCol.appendChild(card);
-          }
-        }
-        state.renderedCount = renderLimit;
-        if (state.renderedCount < total) {
-          infiniteSentinel?.classList.remove('hidden');
-        } else {
-          infiniteSentinel?.classList.add('hidden');
-        }
-      }
+      const columns = getResponsiveColumnCount(state.currentView);
+      if (columns === activeColCount) return;
+      activeColCount = columns;
+      const end = Math.min(Math.max(PAGE_SIZE, state.renderedCount), state.filteredUsers.length);
+      state.renderedCount = 0;
+      initMasonryStructure();
+      appendCardRange(0, end);
     }, 180);
   });
 
@@ -1420,36 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
       initMasonryStructure();
     }
 
-    // Surgical Incremental Append: Append new card directly into shortest column without disturbing existing cards
-    for (let i = startIndex; i < endIndex; i++) {
-      const user = state.filteredUsers[i];
-      const card = createBloggerCardElement(user, i);
-
-      if (state.currentView === 'list') {
-        bloggerWall.appendChild(card);
-      } else {
-        // Find column with minimum height
-        let shortestCol = state.columnElements[0];
-        let minHeight = shortestCol.offsetHeight;
-
-        for (let c = 1; c < state.columnElements.length; c++) {
-          const col = state.columnElements[c];
-          if (col.offsetHeight < minHeight) {
-            minHeight = col.offsetHeight;
-            shortestCol = col;
-          }
-        }
-        shortestCol.appendChild(card);
-      }
-    }
-
-    state.renderedCount = endIndex;
-
-    if (state.renderedCount < totalFiltered) {
-      infiniteSentinel?.classList.remove('hidden');
-    } else {
-      infiniteSentinel?.classList.add('hidden');
-    }
+    appendCardRange(startIndex, endIndex);
   }
 
   // 操作栏是三种视图共用的契约：把状态分支集中在一个模板里，避免某个视图
