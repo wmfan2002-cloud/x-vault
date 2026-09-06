@@ -1408,6 +1408,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 操作栏是三种视图共用的契约：把状态分支集中在一个模板里，避免某个视图
   // 修按钮时漏掉收藏、标签或取消收录的可达性。
+  function renderFavoriteButton(user, isFaved) {
+    if (!currentUser) return '';
+    return `
+      <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}" type="button"
+              data-handle="${escapeHtml(user.screen_name)}"
+              title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="${isFaved ? '取消收藏' : '加入收藏'}">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#heart-fill-outline"/></svg>
+      </button>
+    `;
+  }
+
   function renderCardActions(user, isFaved, isTombstone) {
     const handle = escapeHtml(user.screen_name);
     const name = escapeHtml(user.name || '');
@@ -1417,12 +1428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return `
       <div class="card-action-footer">
-        ${currentUser ? `
-          <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}" type="button"
-                  data-handle="${handle}"
-                  title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="${isFaved ? '取消收藏' : '加入收藏'}">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#heart-fill-outline"/></svg>
-          </button>` : ''}
+        ${state.currentView === 'list' ? renderFavoriteButton(user, isFaved) : ''}
         ${state.viewMode === 'mine' && currentUser ? `
           <button class="btn-card-vis ${privateView ? 'is-private' : 'is-public'}" type="button"
                   data-handle="${handle}" data-vis="${escapeHtml(visibility)}"
@@ -1495,6 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="card-ambient-glow"></div>
       <div class="card-header-banner" style="background-image: url('${coverSrc}');">
         ${isTombstone ? '<div class="tombstone-banner-veil"></div>' : ''}
+        ${state.currentView !== 'list' ? `<div class="card-header-tools">${renderFavoriteButton(user, isFaved)}</div>` : ''}
       </div>
       ${state.viewMode !== 'all' && (user.tag_ids || []).length ? `
         <div class="card-tag-dots" title="已归入 ${(user.tag_ids || []).length} 个标签">

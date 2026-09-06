@@ -169,16 +169,15 @@ const dom2 = await buildDom('/', [mk('9', 'galleryone', 'public'), mk('10', 'gal
 eq(dom2.window.document.querySelectorAll('.btn-card-remove').length, 0, '画廊卡片没有取消收录按钮');
 eq(dom2.window.document.getElementById('mine-tools').classList.contains('hidden'), true, '批量工具条也隐藏');
 
-// 收藏按钮必须在操作栏里，不能在 banner 上 —— list-view 整块 banner 不渲染
-// (`.blogger-wall.list-view .card-header-banner { display: none }`)，
-// 放 banner 上就等于在「数据列表」视图下彻底点不到。jsdom 不做布局，
-// 所以这里断言的是结构位置（真正的成因），而不是可见性。
+// 画廊和紧凑视图的收藏按钮在卡片右上角；list-view 隐藏 banner，
+// 所以同一个按钮在列表视图回到操作栏，保证三种视图都可达。
 const card2 = dom2.window.document.querySelector('.blogger-card');
-eq(!!card2.querySelector('.card-action-footer .card-fav-btn'), true, '收藏按钮在操作栏内（三种视图都在）');
-eq(card2.querySelector('.card-header-banner').querySelector('.card-fav-btn'), null, 'banner 上没有任何按钮');
+eq(!!card2.querySelector('.card-header-tools .card-fav-btn'), true, '收藏按钮位于卡片右上角');
+eq(card2.querySelector('.card-action-footer .card-fav-btn'), null, '网格操作栏不重复显示收藏按钮');
 dom2.window.document.querySelector('.view-tab-btn[data-view="list"]').click();
 await waitFor(() => dom2.window.document.getElementById('blogger-wall').classList.contains('list-view'), '切到数据列表视图');
-eq(!!dom2.window.document.querySelector('.blogger-card .card-action-footer .card-fav-btn'), true, '数据列表视图下收藏按钮仍在操作栏（可达）');
+eq(!!dom2.window.document.querySelector('.blogger-card .card-action-footer .card-fav-btn'), true, '数据列表视图下收藏按钮回到操作栏（可达）');
+eq(dom2.window.document.querySelector('.blogger-card .card-header-tools .card-fav-btn'), null, '列表视图不在隐藏 banner 中渲染收藏按钮');
 dom2.window.close();
 
 // ══ /favorites：取消收藏就地摘卡 + 引用归零时清掉画廊快照缓存 ══

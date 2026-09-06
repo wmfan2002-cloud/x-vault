@@ -155,6 +155,11 @@ async function fixtures(page, base, scene) {
       { field: 'name', old_value: '旧昵称', new_value: '新昵称', changed_at: '2026-01-02T00:00:00Z' },
       { field: 'avatar_url', old_value: 'a', new_value: 'b', changed_at: '2026-01-06T00:00:00Z' },
     ] }));
+    if (scene.auth && p === '/api/auth/me') return route.fulfill(json({
+      success: true,
+      user: { id: 'visual-user', email: 'visual@example.com', display_name: 'Visual User', owned: 0, favorites: 0 },
+    }));
+    if (scene.auth && p === '/api/favorites') return route.fulfill(json({ success: true, data: [] }));
     if (p === '/api/tags' || p === '/api/my-bloggers' || p === '/api/favorites') return route.fulfill(json({ success: true, data: [] }));
     if (p.startsWith('/api/auth/') || p.startsWith('/api/admin/') || p.startsWith('/api/user/')) return route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"unauthorized"}' });
     return route.fulfill(json({ success: true, data: [] }));
@@ -171,6 +176,9 @@ const SCENES = [
   { name: 'gallery-list-view', path: '/', size: [1440, 900], act: ['.view-tab-btn[data-view="list"]'] },
   { name: 'gallery-compact-desktop', path: '/', size: [1440, 900], act: ['.view-tab-btn[data-view="compact"]'] },
   { name: 'gallery-compact-mobile', path: '/', size: [390, 844], act: ['.view-tab-btn[data-view="compact"]'] },
+  { name: 'gallery-favorite-desktop', path: '/', size: [1440, 900], auth: true },
+  { name: 'gallery-favorite-mobile', path: '/', size: [390, 844], auth: true },
+  { name: 'gallery-favorite-compact', path: '/', size: [1440, 900], auth: true, act: ['.view-tab-btn[data-view="compact"]'] },
   { name: 'gallery-resize-roundtrip', path: '/', size: [1440, 900], resizes: [[820, 1100], [390, 844], [1440, 900]] },
   { name: 'gallery-filter-hot', path: '/', size: [1440, 900], act: ['.f-pill[data-filter="hot"]'] },
   // 点卡片开抽屉。settle 等的是遮罩真的显示出来 —— 瀑布流在按实测高度重排，
