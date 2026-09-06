@@ -1411,6 +1411,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function applyBlockedRowState(button, row, blocked) {
+    const nameLine = row?.querySelector('.blogger-name-line');
+    let blockedTag = nameLine?.querySelector('.badge-blocked-tag');
+
+    row?.classList.toggle('is-blocked', blocked);
+    button.className = `btn-action-block ${blocked ? 'to-unblock' : 'to-block'}`;
+    button.setAttribute('data-blocked', blocked ? '1' : '0');
+    button.setAttribute('title', blocked
+      ? '解除全站下架'
+      : '全站下架：对所有人生效。只想自己不看请改用「转私密」');
+    button.innerHTML = blocked
+      ? `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#eye-wide"/></svg><span>解除下架</span>`
+      : `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#ban"/></svg><span>全站下架</span>`;
+
+    if (blocked && !blockedTag && nameLine) {
+      blockedTag = document.createElement('span');
+      blockedTag.className = 'badge-blocked-tag';
+      blockedTag.title = '全站下架：对所有人生效。别人收录同一位博主也进不了公开画廊';
+      blockedTag.innerHTML = `<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#ban"/></svg><span>全站下架</span>`;
+      nameLine.appendChild(blockedTag);
+    } else if (!blocked) {
+      blockedTag?.remove();
+    }
+  }
+
+  function removeFilteredBloggerRow(row, blocked) {
+    const shouldLeave = row && (
+      (bvCurrentStatus === 'in_gallery' && blocked) ||
+      (bvCurrentStatus === 'blocked' && !blocked)
+    );
+    if (!shouldLeave) return;
+
+    row.classList.add('is-collapsing');
+    setTimeout(() => {
+      row.remove();
+      if (bloggerListContainer.querySelectorAll('.blogger-row:not(.is-collapsing)').length === 0) {
+        bloggerListContainer.innerHTML = `
+          <div class="blogger-list-empty">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#search-empty"/></svg>
+            <span>当前筛选下暂无博主档案</span>
+          </div>
+        `;
+      }
+    }, 280);
+  }
+
+  function adjustBlockedTabCounts(blocked) {
+    const currentActive = parseInt(tabCountActive?.textContent?.replace(/,/g, '') || '0', 10);
+    const currentBlocked = parseInt(tabCountBlocked?.textContent?.replace(/,/g, '') || '0', 10);
+    const activeDelta = blocked ? -1 : 1;
+    const blockedDelta = blocked ? 1 : -1;
+    animateCountUp(tabCountActive, Math.max(0, currentActive + activeDelta));
+    animateCountUp(tabCountBlocked, Math.max(0, currentBlocked + blockedDelta));
+  }
+
   function renderBloggerRows(users) {
     if (!bloggerListContainer) return;
     if (!Array.isArray(users) || users.length === 0) {
@@ -1832,67 +1887,10 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerClickSpark(e);
         btn.disabled = true;
 
-        // 1. 乐观就地更新行 DOM 状态（避免全量刷新列表导致的屏幕闪烁与滚动位置丢失）
-        const nameLine = targetRow?.querySelector('.blogger-name-line');
-        let blockedTag = nameLine?.querySelector('.badge-blocked-tag');
-
-        if (targetBlocked) {
-          targetRow?.classList.add('is-blocked');
-          btn.className = 'btn-action-block to-unblock';
-          btn.setAttribute('data-blocked', '1');
-          btn.setAttribute('title', '解除全站下架');
-          btn.innerHTML = `
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#eye-wide"/></svg>
-            <span>解除下架</span>
-          `;
-          if (!blockedTag && nameLine) {
-            blockedTag = document.createElement('span');
-            blockedTag.className = 'badge-blocked-tag';
-            blockedTag.title = '全站下架：对所有人生效。别人收录同一位博主也进不了公开画廊';
-            blockedTag.innerHTML = `
-              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
-              <span>全站下架</span>
-            `;
-            nameLine.appendChild(blockedTag);
-          }
-        } else {
-          targetRow?.classList.remove('is-blocked');
-          btn.className = 'btn-action-block to-block';
-          btn.setAttribute('data-blocked', '0');
-          btn.setAttribute('title', '全站下架：对所有人生效。只想自己不看请改用「转私密」');
-          btn.innerHTML = `
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#ban"/></svg>
-            <span>全站下架</span>
-          `;
-          blockedTag?.remove();
-        }
-
-        // 2. 如果在「展示中」或「已屏蔽」专属过滤 Tab 下，平滑淡出并移除该行
-        if (targetRow && ((bvCurrentStatus === 'in_gallery' && targetBlocked) || (bvCurrentStatus === 'blocked' && !targetBlocked))) {
-          targetRow.classList.add('is-collapsing');
-          setTimeout(() => {
-            targetRow.remove();
-            if (bloggerListContainer.querySelectorAll('.blogger-row:not(.is-collapsing)').length === 0) {
-              bloggerListContainer.innerHTML = `
-                <div class="blogger-list-empty">
-                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#search-empty"/></svg>
-                  <span>当前筛选下暂无博主档案</span>
-                </div>
-              `;
-            }
-          }, 280);
-        }
-
-        // 3. 乐观更新 Tab 角标计数
-        const curActive = parseInt(tabCountActive?.textContent?.replace(/,/g, '') || '0', 10);
-        const curBlocked = parseInt(tabCountBlocked?.textContent?.replace(/,/g, '') || '0', 10);
-        if (targetBlocked) {
-          animateCountUp(tabCountActive, Math.max(0, curActive - 1));
-          animateCountUp(tabCountBlocked, curBlocked + 1);
-        } else {
-          animateCountUp(tabCountActive, curActive + 1);
-          animateCountUp(tabCountBlocked, Math.max(0, curBlocked - 1));
-        }
+        // 乐观更新行、筛选视图和 Tab 角标，避免整页刷新造成闪烁。
+        applyBlockedRowState(btn, targetRow, targetBlocked);
+        removeFilteredBloggerRow(targetRow, targetBlocked);
+        adjustBlockedTabCounts(targetBlocked);
 
         try {
           const res = await fetch('/api/admin/bloggers', {
