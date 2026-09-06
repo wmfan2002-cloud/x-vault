@@ -16,7 +16,7 @@
     "setup:local": "npm run db:migrate:local && npm run seed:local",
     "deploy": "wrangler pages deploy public",
     "lint": "eslint .",
-    "test": "node tests/test-uncollect.mjs && node tests/test-uncollect-ui.mjs && node tests/test-announcements-ui.mjs",
+    "test": "node tests/test-uncollect.mjs && node tests/test-uncollect-ui.mjs && node tests/test-announcements-ui.mjs && node --test tests/test-admin-ui.mjs",
     "test:e2e": "node tests/e2e-uncollect.mjs",
     "bump": "node scripts/bump-assets.mjs"
   },

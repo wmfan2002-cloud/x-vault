@@ -6194,11 +6194,13 @@ code, kbd {
 .admin-modal-description {
   font-size: 13px;
   color: var(--ink-muted);
-  line-height: 1.6;
 }
 .export-description { margin-bottom: 12px; }
 .add-description,
-.refetch-description { margin-bottom: 14px; }
+.refetch-description {
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
 .admin-modal-secondary-emphasis { color: var(--ink-soft); }
 
 .admin-modal-terminal { margin-top: 0; }

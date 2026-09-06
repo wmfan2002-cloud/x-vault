@@ -19,6 +19,7 @@ export default [
     ignores: [
       'node_modules/',
       '.wrangler/',
+      '.visual/',           // 截图与浏览器资源缓存
       'public/data/',       // 构建产物（真实数据快照）
       '_reference/',        // 本地参考资料，不入库、不检查
     ],

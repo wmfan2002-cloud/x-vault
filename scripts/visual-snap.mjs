@@ -22,11 +22,23 @@ import { readFile, mkdir, writeFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright';
 
 const ROOT = 'public';
 const OUT = '.visual';
 const FIXED_NOW = Date.UTC(2026, 0, 15, 12, 0, 0);
+const option = (name) => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+const sourceRef = option('ref');
+const sceneFilter = option('only') ? new RegExp(option('only')) : null;
+const strict = process.argv.includes('--strict');
+const sourceCache = new Map();
+
+async function asset(path) {
+  if (!sourceRef) return readFile(path);
+  if (!sourceCache.has(path)) sourceCache.set(path, execFileSync('git', ['show', `${sourceRef}:${path}`]));
+  return sourceCache.get(path);
+}
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' };
 
@@ -37,7 +49,7 @@ function serve() {
     if (path === '/' || path === '') path = '/index.html';
     if (!extname(path)) path += '.html';
     try {
-      const buf = await readFile(join(ROOT, path));
+      const buf = await asset(join(ROOT, path));
       res.writeHead(200, { 'content-type': MIME[extname(path)] || 'application/octet-stream' });
       res.end(buf);
     } catch {
@@ -73,7 +85,7 @@ async function fontCache(page) {
 }
 
 /** 固定桩数据：真实数据会变（粉丝数、公告、今日精选），会把 diff 淹掉 */
-async function fixtures(page, base) {
+async function fixtures(page, base, scene) {
   const snapshot = JSON.parse(await readFile('public/data/archive.json', 'utf8'));
   const rows = (Array.isArray(snapshot) ? snapshot : snapshot.data || []).slice(0, 24).map((b, i) => ({
     ...b,
@@ -88,9 +100,50 @@ async function fixtures(page, base) {
     updated_at: '2026-01-10T08:00:00Z',
   }));
   const json = (body) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  if (scene.admin) {
+    await page.addInitScript(() => localStorage.setItem('x_archive_admin_token', 'visual-fixture'));
+    const chartUrl = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
+    const chartFile = join(OUT, 'chart-4.4.7.js');
+    await page.route(chartUrl, async route => {
+      if (!existsSync(chartFile)) {
+        const response = await route.fetch();
+        if (!response.ok()) throw new Error('Cannot load Chart.js for visual regression');
+        await writeFile(chartFile, await response.body());
+      }
+      await route.fulfill({ contentType: 'text/javascript', body: await readFile(chartFile) });
+    });
+    const bloggers = scene.empty ? [] : rows.map((row, i) => ({
+      ...row, name: `Creator ${i + 1}`, verified: i % 3 === 0 ? 1 : 0,
+      my_visibility: 'public', in_gallery: 1, is_blocked: i === 3 ? 1 : 0,
+      total_clicks: 60 - i, clicks_card: 30, clicks_timeline: 10, clicks_roulette: 20 - i,
+    }));
+    await page.route('**/api/admin/**', route => {
+      const url = new URL(route.request().url());
+      const responses = {
+        '/api/admin/check': { authenticated: true },
+        '/api/admin/credentials': { success: true, hasCredentials: false },
+        '/api/admin/visibility': { success: true, visibility: 'public' },
+        '/api/admin/workflow-status': { success: true, is_active: false },
+        '/api/admin/refetch-avatar': { success: true, remaining: 8, results: [] },
+        '/api/admin/bloggers': {
+          success: true, data: bloggers, total: bloggers.length, page: 1, limit: 30, totalPages: 1,
+          stats: { total: bloggers.length, in_gallery: bloggers.length ? 23 : 0, blocked: bloggers.length ? 1 : 0, mine_private: 0 },
+        },
+        '/api/admin/analytics': {
+          success: true,
+          kpi: scene.empty ? {} : { total: 24, total_clicks: 1000, clicks_card: 600, clicks_timeline: 300, clicks_roulette: 100,
+            followers_sum: 4500000, verified_pct: 33, snapshots: 120, blocked: 1, suspended: 1, verified: 8 },
+          tiers: scene.empty ? {} : { t1m: 1, t500k: 2, t100k: 8, t10k: 10, tsmall: 3 },
+          topClicked: bloggers.slice(0, 10), topFollowers: bloggers.slice(0, 10),
+        },
+      };
+      return route.fulfill(json(responses[url.pathname] || { success: true, data: [] }));
+    });
+  }
   await page.route('**/api/**', (route) => {
     const u = new URL(route.request().url());
     const p = u.pathname;
+    if (scene.admin && p.startsWith('/api/admin/')) return route.fallback();
     if (p === '/api/archive') return route.fulfill(json({ success: true, data: rows, stats: { total: rows.length } }));
     if (p === '/api/media') return route.fulfill({ status: 302, headers: { location: `${base}/logo-icon.png` } });
     if (p === '/api/announcements') return route.fulfill(json({ success: true, data: [
@@ -137,6 +190,17 @@ const SCENES = [
   { name: 'hover-header-btn', path: '/', size: [1440, 900], hover: '#btn-lucky-pick' },
   { name: 'hover-filter-pill', path: '/', size: [1440, 900], hover: '.f-pill[data-filter="new"]' },
   { name: 'hover-admin-tab', path: '/admin.html', size: [1440, 900], reveal: true, hover: '.admin-tab-btn[data-tab="bloggers"]' },
+  ...[[1440, 900], [390, 844]].flatMap(size => {
+    const device = size[0] === 390 ? 'mobile' : 'desktop';
+    return [
+      { name: `admin-live-analytics-${device}`, path: '/admin.html#analytics', admin: true, size, charts: true, settle: '#analytics-click-top-list .leaderboard-row' },
+      { name: `admin-live-empty-${device}`, path: '/admin.html#analytics', admin: true, empty: true, size, charts: true, settle: '#analytics-click-top-list .blogger-list-empty' },
+      { name: `admin-live-bloggers-${device}`, path: '/admin.html#bloggers', admin: true, size, settle: '#blogger-list-container .blogger-row' },
+      { name: `admin-live-export-${device}`, path: '/admin.html#bloggers', admin: true, size, act: ['#btn-export-handles'], settle: '#modal-export-handles:not(.hidden)' },
+      { name: `admin-live-add-${device}`, path: '/admin.html#bloggers', admin: true, size, act: ['#btn-add-blogger'], settle: '#modal-add-blogger:not(.hidden)' },
+      { name: `admin-live-refetch-${device}`, path: '/admin.html#bloggers', admin: true, size, act: ['#btn-refetch-avatars'], settle: '#modal-refetch:not(.hidden)' },
+    ];
+  }),
 ];
 
 /** 采计算样式的属性白名单。全量 340 条属性会让 JSON 大到没法读，这些是重构真正会碰坏的 */
@@ -217,7 +281,10 @@ async function snap(label) {
     args: ['--disable-lcd-text', '--disable-font-subpixel-positioning', '--disable-partial-raster'],
   });
   let done = 0;
-  for (const scene of SCENES) {
+  const scenes = SCENES.filter(scene => !sceneFilter || sceneFilter.test(scene.name));
+  if (!scenes.length) throw new Error('No scenes matched --only');
+  try {
+  for (const scene of scenes) {
     const page = await browser.newPage({ viewport: { width: scene.size[0], height: scene.size[1] }, deviceScaleFactor: 1 });
     await page.addInitScript(({ now }) => {
       // 返回常数，而不是种子序列。序列版本挡不住干扰：粒子背景每帧都在消耗随机数，
@@ -230,7 +297,7 @@ async function snap(label) {
       Date.UTC = Real.UTC; Date.parse = Real.parse;
     }, { now: FIXED_NOW });
     await fontCache(page);
-    await fixtures(page, base);
+    await fixtures(page, base, scene);
     await page.goto(base + scene.path, { waitUntil: 'load' });
     if (scene.theme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), scene.theme);
     // 管理台：门禁属于后端，这里直接把面板揭出来，只验样式
@@ -238,6 +305,7 @@ async function snap(label) {
       document.getElementById('auth-gate-screen')?.classList.add('hidden');
       document.getElementById('admin-dashboard-screen')?.classList.remove('hidden');
     });
+    if (scene.admin) await page.waitForSelector('#admin-dashboard-screen:not(.hidden)');
     for (const sel of scene.act || []) {
       const el = page.locator(sel).first();
       if (!(await el.count())) continue;
@@ -272,6 +340,27 @@ async function snap(label) {
     }
     await page.evaluate(() => document.fonts.ready.then(() => true));
     await page.waitForLoadState('networkidle').catch(() => {});
+    if (scene.admin) {
+      await page.evaluate(() => {
+        const latency = document.getElementById('hud-d1-latency');
+        latency.textContent = '18ms';
+        latency.className = 'hud-latency-pill fast';
+        // click() can scroll an overflowing panel horizontally before opening a modal.
+        for (const element of document.body.querySelectorAll('*')) element.scrollLeft = 0;
+      });
+    }
+    if (scene.charts) {
+      await page.waitForFunction(() => Object.keys(window.Chart?.instances || {}).length === 3);
+      await page.evaluate(() => {
+        for (const chart of Object.values(window.Chart.instances)) {
+          chart.stop();
+          chart.update('none');
+          if (!chart.ctx.getImageData(0, 0, chart.canvas.width, chart.canvas.height).data.some((value, i) => i % 4 === 3 && value)) {
+            throw new Error(`Blank chart: ${chart.canvas.id}`);
+          }
+        }
+      });
+    }
     // 统一滚回顶部。点卡片会把页面滚走，而 fullPage 截图会把 fixed 元素画在当前滚动位置，
     // 两次跑滚动量不同就是几万像素的假差异。
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -302,10 +391,12 @@ async function snap(label) {
     await page.screenshot({ path: join(dir, `${scene.name}.png`), fullPage: true, animations: 'disabled' });
     await page.close();
     done++;
-    process.stdout.write(`\r  采集 ${done}/${SCENES.length} ${scene.name.padEnd(24)}`);
+    process.stdout.write(`\r  采集 ${done}/${scenes.length} ${scene.name.padEnd(32)}`);
   }
-  await browser.close();
-  server.close();
+  } finally {
+    await browser.close();
+    server.close();
+  }
   console.log(`\n快照写入 ${dir}/（${done} 个场景，各一张 png + 一份计算样式）`);
 }
 
@@ -315,13 +406,19 @@ const NUM = /-?\d*\.?\d+/g;
  * 并顺着传进 radial-gradient 的圆心坐标 —— 同一份代码跑两次就有几百处这种差异。
  * 判定：非数字骨架完全相同，且每个数字相差不超过 1px。
  */
-function jitter(x, y) {
-  if (x === undefined || y === undefined) return true;   // 一侧没采到（DOM 在两遍采样之间变了），不作数
+function jitter(prop, x, y) {
+  if (strict || x === undefined || y === undefined) return false;
+  if (prop === 'background-image') {
+    const position = /^radial-gradient\(circle at (-?[\d.]+)px (-?[\d.]+)px(,.*)$/;
+    const a = x.match(position), b = y.match(position);
+    return !!(a && b && a[3] === b[3] && Math.abs(a[1] - b[1]) <= 1 && Math.abs(a[2] - b[2]) <= 1);
+  }
+  if (!['box', 'width', 'height', 'min-height', 'max-height', 'transform-origin'].includes(prop)) return false;
   const skeleton = (v) => String(v).replace(NUM, '#');
   if (skeleton(x) !== skeleton(y)) return false;
   const nx = String(x).match(NUM) || [];
   const ny = String(y).match(NUM) || [];
-  return nx.every((v, i) => Math.abs(Number(v) - Number(ny[i])) <= 1);
+  return nx.length === ny.length && nx.every((v, i) => Math.abs(Number(v) - Number(ny[i])) <= 1);
 }
 
 async function diff(a, b) {
@@ -330,8 +427,10 @@ async function diff(a, b) {
   const dirA = join(OUT, a);
   const dirB = join(OUT, b);
   for (const d of [dirA, dirB]) if (!existsSync(d)) { console.error(`没有 ${d}，先 snap`); process.exit(1); }
-  const names = [...new Set((await readdir(dirA)).concat(await readdir(dirB)))]
-    .filter((f) => f.endsWith('.png')).map((f) => f.replace(/\.png$/, '')).sort();
+  const names = [...new Set((await readdir(dirA)).concat(await readdir(dirB))
+    .filter(f => /\.(png|json)$/.test(f)).map(f => f.replace(/\.(png|json)$/, '')))]
+    .filter(name => !sceneFilter || sceneFilter.test(name)).sort();
+  if (!names.length) throw new Error('No snapshot files to compare');
 
   let badPix = 0, badStyle = 0;
   console.log(`\n${a} -> ${b}\n`);
@@ -351,21 +450,13 @@ async function diff(a, b) {
         const n = pixelmatch(ia.data, ib.data, out.data, ia.width, ia.height, { threshold: 0.1 });
         const ratio = n / (ia.width * ia.height);
         if (n > 0) await writeFile(join(OUT, `diff-${name}.png`), PNG.sync.write(out));
-        // 像素层只当粗筛，地板放到 1.2 万点。
-        //
-        // 为什么这么松：中文字形的栅格化在两次跑之间就是不稳的 —— 同一段文字、同一个字体、
-        // 同一个盒子位置，边缘像素照样能差上万点（实测 9088，通道差最大 137）。
-        // 已经关掉了次像素定位与 LCD 抗锯齿，剩下的这部分压不掉。
-        //
-        // 所以精确检查全靠计算样式那一层：它是零容差的，68 条属性 + 盒子 + 文案，
-        // 删一条 backdrop-filter 都会被点名。像素层只负责抓样式层看不见的东西 ——
-        // 背景图整块换掉、层叠顺序变了导致元素被盖住之类，那些是十万点量级。
-        if (n > 12000) {
+        // 默认只容忍 256 个栅格化边缘像素，仍输出真实计数；--strict 不容忍任何差异。
+        if (n > (strict ? 0 : 256)) {
           badPix++;
           pixLine = `${n} (${(ratio * 100).toFixed(2)}%)`;
         } else pixLine = n ? `${n} 噪声` : '0';
       }
-    }
+    } else badPix++;
 
     let styleLine = '缺文件';
     const ja = join(dirA, `${name}.json`), jb = join(dirB, `${name}.json`);
@@ -377,9 +468,9 @@ async function diff(a, b) {
       for (const k of new Set([...Object.keys(sa), ...Object.keys(sb)])) {
         if (!sa[k]) { real.push([k, '新增元素', '', sb[k]._]); continue; }
         if (!sb[k]) { real.push([k, '元素消失', sa[k]._, '']); continue; }
-        for (const p of Object.keys(sa[k])) {
+        for (const p of new Set([...Object.keys(sa[k]), ...Object.keys(sb[k])])) {
           if (p === '_' || sa[k][p] === sb[k][p]) continue;
-          (jitter(sa[k][p], sb[k][p]) ? soft : real).push([k, p, sa[k][p], sb[k][p], sa[k]._]);
+          (jitter(p, sa[k][p], sb[k][p]) ? soft : real).push([k, p, sa[k][p], sb[k][p], sa[k]._]);
         }
       }
       const fmt = (rows) => rows.map(([k, p, x, y, id]) => `${k}  ${id || ''}\n    ${p}: ${x}  ->  ${y}`).join('\n');
@@ -389,12 +480,13 @@ async function diff(a, b) {
       }
       if (real.length) badStyle++;
       styleLine = real.length ? `${real.length} 处` : (soft.length ? `0（抖动 ${soft.length}）` : '0');
-    }
-    console.log(`${name.padEnd(26)}${pixLine.padEnd(14)}${styleLine}`);
+    } else badStyle++;
+    console.log(`${name.padEnd(34)}${pixLine.padEnd(18)}${styleLine}`);
   }
   console.log('─'.repeat(58));
   if (!badPix && !badStyle) console.log('外观完全一致。\n');
   else console.log(`${badPix} 个场景像素有差异，${badStyle} 个场景样式有变动。明细见 ${OUT}/diff-*.png 与 ${OUT}/diff-*.txt\n`);
+  if (badPix || badStyle) process.exitCode = 1;
 }
 
 const [cmd, x, y] = process.argv.slice(2);
@@ -404,6 +496,7 @@ else {
   console.log(`用法:
   node scripts/visual-snap.mjs snap <标签>       采集一套快照到 ${OUT}/<标签>/
   node scripts/visual-snap.mjs diff <A> <B>      比对两套快照
+  --only=<场景正则>  --ref=<Git 提交>（仅采集）  --strict（零像素/样式容差）
 
 典型流程:
   node scripts/visual-snap.mjs snap before

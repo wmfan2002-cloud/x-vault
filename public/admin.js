@@ -1010,6 +1010,40 @@ document.addEventListener('DOMContentLoaded', () => {
     return clean;
   }
 
+  function applyWorkflowLogState(clean) {
+    if (clean.includes('PROGRESS') || clean.includes('已累计深度巡检')) {
+      const match = clean.match(/已累计深度巡检:\s*(\d+)\s*人\s*\|\s*库中总博主数:\s*(\d+)\s*人/);
+      if (match) {
+        const scanned = parseInt(match[1], 10) || 0;
+        const total = parseInt(match[2], 10) || 1;
+        const percent = Math.min(Math.round((scanned / Math.max(total, scanned)) * 100), 98);
+        syncProgressFill.style.width = `${percent}%`;
+        syncProgressCountText.textContent = `${scanned} / ${total} 人 (${percent}%)`;
+        syncProgressStatusText.textContent = `全量巡检进行中 (${scanned} 人已核对)...`;
+      }
+      return;
+    }
+
+    if (clean.includes('COOLDOWN') || clean.includes('冷却保护中') || clean.includes('冷却期') || clean.includes('15 分钟')) {
+      const minutes = clean.match(/剩余\s*(\d+)\s*分钟/);
+      const suffix = minutes ? ` (剩余 ${minutes[1]} 分钟)` : '';
+      syncProgressStatusText.textContent = `🛡️ 已触发 15 分钟安全冷却${suffix}，正在重置 X 频控桶...`;
+      syncProgressCountText.textContent = `冷却中${suffix}`;
+      return;
+    }
+
+    if (clean.includes('WAIT') || clean.includes('拟人安全间隔')) {
+      const seconds = clean.match(/休眠\s*([\d.]+)\s*秒/);
+      const suffix = seconds ? ` (休眠 ${seconds[1]}s)` : '';
+      syncProgressStatusText.textContent = `⏳ 拟人安全间隔中${suffix}...`;
+      return;
+    }
+
+    if (clean.includes('PAGE') || clean.includes('正在深度刷新')) {
+      syncProgressStatusText.textContent = clean;
+    }
+  }
+
   function startWatchingWorkflow(runId) {
     if (ghWorkflowPollTimer) clearInterval(ghWorkflowPollTimer);
     ghCurrentRunId = runId ? String(runId) : null;
@@ -1080,29 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
               knownLogLines.add(lineKey);
               logTerminal(clean);
 
-              // 智能驱动顶部进度条状态
-              if (clean.includes('PROGRESS') || clean.includes('已累计深度巡检')) {
-                const match = clean.match(/已累计深度巡检:\s*(\d+)\s*人\s*\|\s*库中总博主数:\s*(\d+)\s*人/);
-                if (match) {
-                  const currentScanned = parseInt(match[1], 10) || 0;
-                  const totalDb = parseInt(match[2], 10) || 1;
-                  const pct = Math.min(Math.round((currentScanned / Math.max(totalDb, currentScanned)) * 100), 98);
-                  syncProgressFill.style.width = `${pct}%`;
-                  syncProgressCountText.textContent = `${currentScanned} / ${totalDb} 人 (${pct}%)`;
-                  syncProgressStatusText.textContent = `全量巡检进行中 (${currentScanned} 人已核对)...`;
-                }
-              } else if (clean.includes('COOLDOWN') || clean.includes('冷却保护中') || clean.includes('冷却期') || clean.includes('15 分钟')) {
-                const minMatch = clean.match(/剩余\s*(\d+)\s*分钟/);
-                const minText = minMatch ? ` (剩余 ${minMatch[1]} 分钟)` : '';
-                syncProgressStatusText.textContent = `🛡️ 已触发 15 分钟安全冷却${minText}，正在重置 X 频控桶...`;
-                syncProgressCountText.textContent = `冷却中${minText}`;
-              } else if (clean.includes('WAIT') || clean.includes('拟人安全间隔')) {
-                const secMatch = clean.match(/休眠\s*([\d.]+)\s*秒/);
-                const secText = secMatch ? ` (休眠 ${secMatch[1]}s)` : '';
-                syncProgressStatusText.textContent = `⏳ 拟人安全间隔中${secText}...`;
-              } else if (clean.includes('PAGE') || clean.includes('正在深度刷新')) {
-                syncProgressStatusText.textContent = clean;
-              }
+              applyWorkflowLogState(clean);
             }
           }
         }
