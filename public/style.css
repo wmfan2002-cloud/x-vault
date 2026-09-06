@@ -3671,70 +3671,70 @@ code, kbd {
     flex-shrink: 0;
   }
 
-  .v2-main, .admin-shell-container {
+  :is(.v2-main), :is(.admin-shell-container) {
     padding: 14px 14px 36px;
   }
 
-  .hero-section {
+  :is(.hero-section) {
     padding: 20px 16px;
     min-height: auto;
     margin-bottom: 20px;
   }
 
-  .hero-title {
+  :is(.hero-title) {
     font-size: 22px;
   }
 
-  .hero-description {
+  :is(.hero-description) {
     font-size: 13px;
   }
 
-  .hero-unified-capsule {
+  :is(.hero-unified-capsule) {
     padding: 12px 10px;
     margin-top: 10px;
     max-width: 100%;
   }
 
-  .capsule-number {
+  :is(.capsule-number) {
     font-size: 19px;
   }
 
-  .capsule-label {
+  :is(.capsule-label) {
     font-size: 10px;
   }
 
-  .capsule-metric-item {
+  :is(.capsule-metric-item) {
     gap: 6px;
     padding: 0 4px;
   }
 
-  .capsule-icon {
+  :is(.capsule-icon) {
     width: 26px;
     height: 26px;
   }
 
-  .capsule-icon svg {
+  :is(.capsule-icon) svg {
     width: 15px;
     height: 15px;
   }
 
-  .hero-right-spotlight {
+  :is(.hero-right-spotlight) {
     padding: 16px;
     gap: 10px;
   }
 
-  .spotlight-avatar {
+  :is(.spotlight-avatar) {
     width: 52px;
     height: 52px;
   }
 
-  .filter-header-row {
+  :is(.filter-header-row) {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
 
-  .filter-pills-row {
+  :is(.filter-pills-row) {
     display: flex;
     align-items: center;
     gap: 8px 6px;
@@ -3747,13 +3747,13 @@ code, kbd {
     -webkit-mask-image: none;
   }
 
-  .f-pill {
+  :is(.f-pill) {
     padding: 6px 11px;
     font-size: 12px;
     white-space: nowrap;
   }
 
-  .discovery-meta-row {
+  :is(.discovery-meta-row) {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -3761,61 +3761,61 @@ code, kbd {
     width: 100%;
   }
 
-  .results-indicator {
+  :is(.results-indicator) {
     font-size: 12px;
   }
 
-  .sort-label {
+  :is(.sort-label) {
     display: none;
   }
 
-  .custom-select-box {
+  :is(.custom-select-box) {
     width: 146px;
   }
 
-  .select-trigger-btn {
+  :is(.select-trigger-btn) {
     padding: 5px 10px;
     font-size: 12px;
   }
 
-  .view-mode-tabs {
+  :is(.view-mode-tabs) {
     align-self: auto;
   }
 
-  .fields-row-2 {
+  :is(.fields-row-2) {
     grid-template-columns: 1fr;
   }
 
-  .inspector-drawer, .roulette-frameless-wrapper {
+  :is(.inspector-drawer), :is(.roulette-frameless-wrapper) {
     max-width: 100%;
   }
 
-  .footer-inner {
+  :is(.footer-inner) {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .blogger-vault-toolbar {
+  :is(.blogger-vault-toolbar) {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .blogger-search-wrapper {
+  :is(.blogger-search-wrapper) {
     min-width: 100%;
   }
 
-  .blogger-filter-tabs {
+  :is(.blogger-filter-tabs) {
     overflow-x: auto;
     width: 100%;
   }
 
-  .blogger-row {
+  :is(.blogger-row) {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
 
-  .blogger-row-right {
+  :is(.blogger-row-right) {
     width: 100%;
     justify-content: space-between;
   }
