@@ -2102,6 +2102,77 @@ document.addEventListener('DOMContentLoaded', () => {
   const healthValSuspended = document.getElementById('health-val-suspended');
   const healthValVerified = document.getElementById('health-val-verified');
 
+  // Chart.js 的外壳配置只有数据与 tooltip 文案不同；集中构造可以避免
+  // 三张图在调整材质、图例或响应式策略时各自漂移。
+  const CHART_TOOLTIP_BASE = {
+    backgroundColor: '#09090b',
+    titleColor: '#f8fafc',
+    bodyColor: '#94a3b8',
+    borderColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    padding: 10,
+    cornerRadius: 8,
+  };
+
+  const chartTooltip = (label) => ({
+    ...CHART_TOOLTIP_BASE,
+    callbacks: { label },
+  });
+
+  const makeDoughnutConfig = ({ labels, values, colors, cutout, tooltipLabel }) => ({
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout,
+      plugins: {
+        legend: { display: false },
+        tooltip: chartTooltip(tooltipLabel),
+      },
+    },
+  });
+
+  const makeFollowerTierConfig = ({ labels, values, colors, tooltipLabel }) => ({
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: chartTooltip(tooltipLabel),
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255, 255, 255, 0.06)' },
+          ticks: { color: '#64748b', font: { family: "'JetBrains Mono', monospace", size: 11 } },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: '#94a3b8', font: { size: 12, weight: '600' } },
+        },
+      },
+    },
+  });
+
   async function loadAnalyticsDashboard() {
     if (!adminSessionToken) return;
 
@@ -2145,10 +2216,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const analyticsFallbackAvatar = '/api/media?url=' + encodeURIComponent('https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png');
+
+  function renderLeaderboardRow(user, index, rightMarkup, fallbackAvatar = analyticsFallbackAvatar) {
+    const rank = index + 1;
+    const rankClass = rank <= 3 ? `rank-${rank}` : '';
+    const avatarSrc = resolveMediaUrl(user.avatar_url) || fallbackAvatar;
+    const verifiedBadge = user.verified
+      ? `<svg width="12" height="12" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>`
+      : '';
+
+    return `
+      <div class="leaderboard-row ${rankClass}">
+        <div class="leaderboard-left">
+          <span class="leaderboard-rank">${rank}</span>
+          <div class="leaderboard-avatar-box">
+            <img class="leaderboard-avatar" src="${escapeHtml(avatarSrc)}" alt="${escapeHtml(user.name)}" loading="lazy" onerror="this.onerror=null; this.src='${escapeHtml(fallbackAvatar)}'">
+          </div>
+          <div class="leaderboard-info">
+            <div class="leaderboard-name-row">
+              <span class="leaderboard-name" title="${escapeHtml(user.name)}">${escapeHtml(user.name)}</span>
+              ${verifiedBadge}
+            </div>
+            <span class="leaderboard-handle">@${escapeHtml(user.screen_name)}</span>
+          </div>
+        </div>
+
+        <div class="leaderboard-right">
+          ${rightMarkup}
+        </div>
+      </div>
+    `;
+  }
+
   function renderClickTopLeaderboard(bloggers, totalClicks) {
     if (!analyticsClickTopList) return;
 
-    const defaultFallbackAvatar = '/api/media?url=' + encodeURIComponent('https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png');
     const sortedByClicks = [...bloggers].sort((a, b) => (b.total_clicks || 0) - (a.total_clicks || 0));
     const topClicked = sortedByClicks.slice(0, 10);
     const maxClick = topClicked[0]?.total_clicks || 0;
@@ -2165,9 +2268,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     analyticsClickTopList.innerHTML = topClicked.map((u, idx) => {
-      const rank = idx + 1;
-      const rankClass = rank <= 3 ? `rank-${rank}` : '';
-      const avatarSrc = resolveMediaUrl(u.avatar_url) || defaultFallbackAvatar;
       const uTotal = u.total_clicks || 0;
 
       const cardC = u.clicks_card || 0;
@@ -2176,47 +2276,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const timePct = uTotal > 0 ? Math.round((timeC / uTotal) * 100) : 0;
       const roulPct = uTotal > 0 ? Math.max(0, 100 - cardPct - timePct) : 0;
 
-      return `
-        <div class="leaderboard-row ${rankClass}">
-          <div class="leaderboard-left">
-            <span class="leaderboard-rank">${rank}</span>
-            <div class="leaderboard-avatar-box">
-              <img class="leaderboard-avatar" src="${escapeHtml(avatarSrc)}" alt="${escapeHtml(u.name)}" loading="lazy" onerror="this.onerror=null; this.src='${escapeHtml(defaultFallbackAvatar)}'">
-            </div>
-            <div class="leaderboard-info">
-              <div class="leaderboard-name-row">
-                <span class="leaderboard-name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</span>
-                ${u.verified ? `<svg width="12" height="12" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>` : ''}
-              </div>
-              <span class="leaderboard-handle">@${escapeHtml(u.screen_name)}</span>
-            </div>
-          </div>
-
-          <div class="leaderboard-right">
-            <div class="leaderboard-source-bar-wrap" title="卡片跳转: ${cardPct}% | 时光抽屉: ${timePct}% | 抽卡探索: ${roulPct}%">
-              <div class="leaderboard-source-seg seg-card" style="width: ${cardPct}%;"></div>
-              <div class="leaderboard-source-seg seg-timeline" style="width: ${timePct}%;"></div>
-              <div class="leaderboard-source-seg seg-roulette" style="width: ${roulPct}%;"></div>
-            </div>
-
-            <span class="leaderboard-click-badge" title="累计点击 ${uTotal} 次">
-              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
-              <span>${uTotal}</span>
-            </span>
-
-            <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="前往 X 主页">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
-            </a>
-          </div>
+      return renderLeaderboardRow(u, idx, `
+        <div class="leaderboard-source-bar-wrap" title="卡片跳转: ${cardPct}% | 时光抽屉: ${timePct}% | 抽卡探索: ${roulPct}%">
+          <div class="leaderboard-source-seg seg-card" style="width: ${cardPct}%;"></div>
+          <div class="leaderboard-source-seg seg-timeline" style="width: ${timePct}%;"></div>
+          <div class="leaderboard-source-seg seg-roulette" style="width: ${roulPct}%;"></div>
         </div>
-      `;
+
+        <span class="leaderboard-click-badge" title="累计点击 ${uTotal} 次">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
+          <span>${uTotal}</span>
+        </span>
+
+        <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="前往 X 主页">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
+        </a>
+      `);
     }).join('');
   }
 
   function renderFollowersTopLeaderboard(bloggers) {
     if (!analyticsFollowersTopList) return;
 
-    const defaultFallbackAvatar = '/api/media?url=' + encodeURIComponent('https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png');
     const sortedByFollowers = [...bloggers].sort((a, b) => (b.followers_count || 0) - (a.followers_count || 0));
     const topFollowers = sortedByFollowers.slice(0, 10);
     const maxFollower = topFollowers[0]?.followers_count || 1;
@@ -2227,42 +2308,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     analyticsFollowersTopList.innerHTML = topFollowers.map((u, idx) => {
-      const rank = idx + 1;
-      const rankClass = rank <= 3 ? `rank-${rank}` : '';
-      const avatarSrc = resolveMediaUrl(u.avatar_url) || defaultFallbackAvatar;
       const percentOfMax = Math.round(((u.followers_count || 0) / maxFollower) * 100);
 
-      return `
-        <div class="leaderboard-row ${rankClass}">
-          <div class="leaderboard-left">
-            <span class="leaderboard-rank">${rank}</span>
-            <div class="leaderboard-avatar-box">
-              <img class="leaderboard-avatar" src="${escapeHtml(avatarSrc)}" alt="${escapeHtml(u.name)}" loading="lazy" onerror="this.onerror=null; this.src='${escapeHtml(defaultFallbackAvatar)}'">
-            </div>
-            <div class="leaderboard-info">
-              <div class="leaderboard-name-row">
-                <span class="leaderboard-name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</span>
-                ${u.verified ? `<svg width="12" height="12" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>` : ''}
-              </div>
-              <span class="leaderboard-handle">@${escapeHtml(u.screen_name)}</span>
-            </div>
-          </div>
-
-          <div class="leaderboard-right">
-            <div class="leaderboard-source-bar-wrap" style="width: 90px;" title="占头部最高粉丝比: ${percentOfMax}%">
-              <div class="leaderboard-source-seg" style="width: ${percentOfMax}%; background: var(--accent-gold);"></div>
-            </div>
-
-            <span class="leaderboard-followers-badge">
-              ${formatFollowersCount(u.followers_count)}
-            </span>
-
-            <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="前往 X 主页">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
-            </a>
-          </div>
+      return renderLeaderboardRow(u, idx, `
+        <div class="leaderboard-source-bar-wrap" style="width: 90px;" title="占头部最高粉丝比: ${percentOfMax}%">
+          <div class="leaderboard-source-seg" style="width: ${percentOfMax}%; background: var(--accent-gold);"></div>
         </div>
-      `;
+
+        <span class="leaderboard-followers-badge">
+          ${formatFollowersCount(u.followers_count)}
+        </span>
+
+        <a href="https://x.com/${escapeHtml(u.screen_name)}" target="_blank" rel="noopener noreferrer" class="btn-action-icon" title="前往 X 主页">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#external-link"/></svg>
+        </a>
+      `);
     }).join('');
   }
 
@@ -2287,43 +2347,18 @@ document.addEventListener('DOMContentLoaded', () => {
       chartClickSourcesInstance.destroy();
     }
 
-    chartClickSourcesInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['画廊主页卡片', '时光档案抽屉', '抽卡随机探索'],
-        datasets: [{
-          data: dataValues,
-          backgroundColor: bgColors,
-          borderWidth: 0,
-          hoverOffset: 6
-        }]
+    chartClickSourcesInstance = new Chart(ctx, makeDoughnutConfig({
+      labels: ['画廊主页卡片', '时光档案抽屉', '抽卡随机探索'],
+      values: dataValues,
+      colors: bgColors,
+      cutout: '72%',
+      tooltipLabel(item) {
+        if (totalClicks === 0) return ' 暂无点击记录';
+        const val = item.raw || 0;
+        const pct = Math.round((val / totalClicks) * 100);
+        return ` ${item.label}: ${val} 次 (${pct}%)`;
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#09090b',
-            titleColor: '#f8fafc',
-            bodyColor: '#94a3b8',
-            borderColor: 'rgba(255,255,255,0.15)',
-            borderWidth: 1,
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: {
-              label: function(item) {
-                if (totalClicks === 0) return ' 暂无点击记录';
-                const val = item.raw || 0;
-                const pct = Math.round((val / totalClicks) * 100);
-                return ` ${item.label}: ${val} 次 (${pct}%)`;
-              }
-            }
-          }
-        }
-      }
-    });
+    }));
   }
 
   function renderFollowerTiersChart(tiers) {
@@ -2341,50 +2376,14 @@ document.addEventListener('DOMContentLoaded', () => {
       chartFollowerTiersInstance.destroy();
     }
 
-    chartFollowerTiersInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['≥1M 超头部', '500K-1M 大V', '100K-500K 骨干', '10K-100K 进阶', '<10K 潜力'],
-        datasets: [{
-          data: [tier1M, tier500K, tier100K, tier10K, tierLow],
-          backgroundColor: ['#f59e0b', '#ec4899', '#38bdf8', '#10b981', '#64748b'],
-          borderRadius: 6,
-          borderSkipped: false
-        }]
+    chartFollowerTiersInstance = new Chart(ctx, makeFollowerTierConfig({
+      labels: ['≥1M 超头部', '500K-1M 大V', '100K-500K 骨干', '10K-100K 进阶', '<10K 潜力'],
+      values: [tier1M, tier500K, tier100K, tier10K, tierLow],
+      colors: ['#f59e0b', '#ec4899', '#38bdf8', '#10b981', '#64748b'],
+      tooltipLabel(item) {
+        return ` 博主数量: ${item.raw} 位`;
       },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#09090b',
-            titleColor: '#f8fafc',
-            bodyColor: '#94a3b8',
-            borderColor: 'rgba(255,255,255,0.15)',
-            borderWidth: 1,
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: {
-              label: function(item) {
-                return ` 博主数量: ${item.raw} 位`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255, 255, 255, 0.06)' },
-            ticks: { color: '#64748b', font: { family: "'JetBrains Mono', monospace", size: 11 } }
-          },
-          y: {
-            grid: { display: false },
-            ticks: { color: '#94a3b8', font: { size: 12, weight: '600' } }
-          }
-        }
-      }
-    });
+    }));
   }
 
   function renderAccountHealthChart(activeCount, blockedCount, suspendedCount, verifiedCount) {
@@ -2403,40 +2402,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalHealthData = activeCount + blockedCount + suspendedCount;
     const values = totalHealthData > 0 ? [activeCount, blockedCount, suspendedCount, verifiedCount] : [1, 0, 0, 0];
 
-    chartAccountHealthInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['正常展示中', '已屏蔽', '官方封号/注销', '蓝标认证'],
-        datasets: [{
-          data: values,
-          backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#38bdf8'],
-          borderWidth: 0,
-          hoverOffset: 6
-        }]
+    chartAccountHealthInstance = new Chart(ctx, makeDoughnutConfig({
+      labels: ['正常展示中', '已屏蔽', '官方封号/注销', '蓝标认证'],
+      values,
+      colors: ['#10b981', '#f43f5e', '#f59e0b', '#38bdf8'],
+      cutout: '68%',
+      tooltipLabel(item) {
+        return ` ${item.label}: ${item.raw} 位`;
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '68%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#09090b',
-            titleColor: '#f8fafc',
-            bodyColor: '#94a3b8',
-            borderColor: 'rgba(255,255,255,0.15)',
-            borderWidth: 1,
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: {
-              label: function(item) {
-                return ` ${item.label}: ${item.raw} 位`;
-              }
-            }
-          }
-        }
-      }
-    });
+    }));
   }
 
   // ==================== 8. Toast Notifications ====================
