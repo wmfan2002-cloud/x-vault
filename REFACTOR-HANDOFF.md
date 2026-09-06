@@ -72,7 +72,7 @@ node scripts/visual-snap.mjs diff before after   # 要看到「外观完全一�
 | admin.js | 2643 | **50%** (60%) | 167 行 | <5% |
 | app.js | 2954 | **52%** (54%) | 245 行 | <5% |
 | admin.html | 776 | **33%** (75%) | **19 行** (259) | <5% |
-| index.html | 561 | **39%** (56%) | **20 行** (121) | <5% |
+| index.html | 544 | **40%** (56%) | **18 行** (121) | <5% |
 
 ## 交战规则
 
@@ -127,6 +127,7 @@ node scripts/visual-snap.mjs diff before after   # 要看到「外观完全一�
 
 ### 阶段 4 · index.html
 574 行，56% 块级重合，最长 121 行 @279（discovery-bar）。
+- [x] 排序下拉只保留契约容器，四个选项由现有 `app.js` 初始化按筛选状态生成；22 个场景零样式差异。
 - [ ] 重写标记结构，同步 style.css 选择器与 app.js 的 id 引用
 
 ### 阶段 5 · 收尾
