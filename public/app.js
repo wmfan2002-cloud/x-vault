@@ -1452,6 +1452,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 操作栏是三种视图共用的契约：把状态分支集中在一个模板里，避免某个视图
+  // 修按钮时漏掉收藏、标签或取消收录的可达性。
+  function renderCardActions(user, isFaved, isTombstone) {
+    const handle = escapeHtml(user.screen_name);
+    const name = escapeHtml(user.name || '');
+    const visibility = user.visibility || 'public';
+    const privateView = visibility === 'private';
+    const inPersonalView = state.viewMode !== 'all';
+
+    return `
+      <div class="card-action-footer">
+        ${currentUser ? `
+          <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}" type="button"
+                  data-handle="${handle}"
+                  title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="${isFaved ? '取消收藏' : '加入收藏'}">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#heart-fill-outline"/></svg>
+          </button>` : ''}
+        ${state.viewMode === 'mine' && currentUser ? `
+          <button class="btn-card-vis ${privateView ? 'is-private' : 'is-public'}" type="button"
+                  data-handle="${handle}" data-vis="${escapeHtml(visibility)}"
+                  title="${privateView ? '当前「仅自己可见」，点击公开到画廊' : '当前「公开」，点击改为仅自己可见'}">
+            ${privateView ? `
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><use href="/icons.svg#lock"/></svg>
+              <span>仅自己</span>
+            ` : `
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><use href="/icons.svg#globe"/></svg>
+              <span>公开</span>
+            `}
+          </button>` : ''}
+        ${inPersonalView && currentUser ? `
+          <button class="btn-card-tag" type="button" data-id="${escapeHtml(user.id)}" data-handle="${handle}"
+                  title="归入标签 / 文件夹">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#tag"/></svg>
+            <span>${(user.tag_ids || []).length ? `标签 ${(user.tag_ids || []).length}` : '标签'}</span>
+          </button>` : ''}
+        ${state.viewMode === 'mine' && currentUser ? `
+          <button class="btn-card-remove" type="button" data-handle="${handle}" data-name="${name}"
+                  title="取消收录：只移除这一条归属，公开仓与他人的收录不受影响">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#trash-outline"/></svg>
+            <span>取消收录</span>
+          </button>` : ''}
+        <button class="btn-inspect-profile" type="button">
+          ${ICONS.eye}
+          <span>时光档案</span>
+        </button>
+        <a class="btn-visit-x" href="https://x.com/${user.screen_name}" target="_blank" onclick="event.stopPropagation(); window.trackBloggerClick('${handle}', 'card');">
+          <span>${isTombstone ? '原主页' : '访问 X'}</span>
+          ${ICONS.external}
+        </a>
+      </div>
+    `;
+  }
+
   function createBloggerCardElement(user, idx) {
     const card = document.createElement('div');
     const isSuspended = user.is_suspended === 1;
@@ -1521,53 +1574,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="card-bio-content">${formattedBio}</div>
       </div>
 
-      <div class="card-action-footer">
-        ${/*
-          ⚠️ 可见性、标签、收藏这些控件**必须放在操作栏里，不能放 banner 上**。
-          `.blogger-wall.list-view .card-header-banner { display: none }` ——
-          「数据列表」视图整块 banner 都不渲染，放那儿的按钮在该视图下彻底不可达。
-          （第一版就放在 banner 左上角，站长反馈"没看见"；收藏按钮后来又踩了一次。）
-          操作栏在 grid / compact / list 三种视图下都存在。
-        */ ''}
-        ${currentUser ? `
-          <button class="card-fav-btn ${isFaved ? 'is-fav' : ''}" type="button"
-                  data-handle="${escapeHtml(user.screen_name)}"
-                  title="${isFaved ? '取消收藏' : '加入收藏'}" aria-label="${isFaved ? '取消收藏' : '加入收藏'}">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#heart-fill-outline"/></svg>
-          </button>` : ''}
-        ${state.viewMode === 'mine' && currentUser ? `
-          <button class="btn-card-vis ${user.visibility === 'private' ? 'is-private' : 'is-public'}" type="button"
-                  data-handle="${escapeHtml(user.screen_name)}" data-vis="${escapeHtml(user.visibility || 'public')}"
-                  title="${user.visibility === 'private' ? '当前「仅自己可见」，点击公开到画廊' : '当前「公开」，点击改为仅自己可见'}">
-            ${user.visibility === 'private' ? `
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><use href="/icons.svg#lock"/></svg>
-              <span>仅自己</span>
-            ` : `
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><use href="/icons.svg#globe"/></svg>
-              <span>公开</span>
-            `}
-          </button>` : ''}
-        ${state.viewMode !== 'all' && currentUser ? `
-          <button class="btn-card-tag" type="button" data-id="${escapeHtml(user.id)}" data-handle="${escapeHtml(user.screen_name)}"
-                  title="归入标签 / 文件夹">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#tag"/></svg>
-            <span>${(user.tag_ids || []).length ? `标签 ${(user.tag_ids || []).length}` : '标签'}</span>
-          </button>` : ''}
-        ${state.viewMode === 'mine' && currentUser ? `
-          <button class="btn-card-remove" type="button" data-handle="${escapeHtml(user.screen_name)}" data-name="${escapeHtml(user.name || '')}"
-                  title="取消收录：只移除这一条归属，公开仓与他人的收录不受影响">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#trash-outline"/></svg>
-            <span>取消收录</span>
-          </button>` : ''}
-        <button class="btn-inspect-profile" type="button">
-          ${ICONS.eye}
-          <span>时光档案</span>
-        </button>
-        <a class="btn-visit-x" href="https://x.com/${user.screen_name}" target="_blank" onclick="event.stopPropagation(); window.trackBloggerClick('${escapeHtml(user.screen_name)}', 'card');">
-          <span>${isTombstone ? '原主页' : '访问 X'}</span>
-          ${ICONS.external}
-        </a>
-      </div>
+      ${renderCardActions(user, isFaved, isTombstone)}
     `;
 
     // Initialize deterministic vibrant palette immediately
