@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display: flex; align-items: center; gap: 8px;">
               <svg class="icon-spin-smooth" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#refresh-ccw-dot"/></svg>
               <span>全量数据深度刷新中</span>
-              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); font-weight: 500;">${runTag}</span>
+              <span style="font-family: var(--type-mono); font-size: 11.5px; color: var(--ink-muted); font-weight: 500;">${runTag}</span>
             </div>
             <div class="badge-status-pill running">
               <span class="tag-dot-pulse"></span>
@@ -1485,7 +1485,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="blogger-name-line">
                 <span class="blogger-row-name">${escapeHtml(u.name)}</span>
                 ${u.verified ? `
-                  <svg width="13" height="13" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" title="X 官方认证" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>
+                  <svg width="13" height="13" fill="none" stroke="var(--cyan)" stroke-width="2.5" title="X 官方认证" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>
                 ` : ''}
                 <span class="blogger-row-handle">@${escapeHtml(u.screen_name)}</span>
                 ${u.is_suspended === 1 ? `
@@ -1543,7 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
               <button type="button" class="btn-action-icon btn-copy-handle" data-handle="${escapeHtml(u.screen_name)}" title="复制 @${escapeHtml(u.screen_name)}">
                 <svg class="icon-copy" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><use href="/icons.svg#copy-thin"/></svg>
-                <svg class="icon-check hidden" width="14" height="14" fill="none" stroke="var(--accent-success)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#check-badge"/></svg>
+                <svg class="icon-check hidden" width="14" height="14" fill="none" stroke="var(--green)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#check-badge"/></svg>
               </button>
 
               <button type="button" class="btn-action-vis ${isPublic ? 'to-private' : 'to-public'}" data-handle="${escapeHtml(u.screen_name)}" data-vis="${isPublic ? 'public' : 'private'}" title="${isPublic ? '仅站长可见：只把你这一条归属撤下，不影响别人收录同一位博主' : (notOwned ? '公开：收录到你名下并显示在画廊' : '公开：让它出现在画廊（前提是没被全站下架）')}">
@@ -1571,7 +1571,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </button>
 
               <button type="button" class="btn-action-icon btn-delete-blogger" data-handle="${escapeHtml(u.screen_name)}" data-name="${escapeHtml(u.name || '')}" data-owners="${u.owner_count || 0}" data-mine="${isPublic || isPrivate ? '1' : '0'}" title="彻底删除档案（不可恢复，区别于「屏蔽」）">
-                <svg width="14" height="14" fill="none" stroke="var(--accent-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#trash-outline"/></svg>
+                <svg width="14" height="14" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#trash-outline"/></svg>
               </button>
             </div>
           </div>
@@ -2223,7 +2223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rankClass = rank <= 3 ? `rank-${rank}` : '';
     const avatarSrc = resolveMediaUrl(user.avatar_url) || fallbackAvatar;
     const verifiedBadge = user.verified
-      ? `<svg width="12" height="12" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>`
+      ? `<svg width="12" height="12" fill="none" stroke="var(--cyan)" stroke-width="2.5" aria-hidden="true"><use href="/icons.svg#badge-verified"/></svg>`
       : '';
 
     return `
@@ -2259,9 +2259,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (totalClicks === 0 || maxClick === 0) {
       analyticsClickTopList.innerHTML = `
         <div class="blogger-list-empty" style="padding: 36px 16px;">
-          <svg width="24" height="24" fill="none" stroke="var(--accent-spark)" stroke-width="2" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
-          <span style="color: var(--text-main); font-weight: 600; font-size: 13.5px;">本站点击热度正在累积中</span>
-          <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">访客在画廊卡片、时光档案与抽卡探索中跳转 X 主页后，将在此实时自动生成热度排行榜。</span>
+          <svg width="24" height="24" fill="none" stroke="var(--pink)" stroke-width="2" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
+          <span style="color: var(--ink); font-weight: 600; font-size: 13.5px;">本站点击热度正在累积中</span>
+          <span style="font-size: 12px; color: var(--ink-muted); margin-top: 4px;">访客在画廊卡片、时光档案与抽卡探索中跳转 X 主页后，将在此实时自动生成热度排行榜。</span>
         </div>
       `;
       return;
@@ -2312,7 +2312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return renderLeaderboardRow(u, idx, `
         <div class="leaderboard-source-bar-wrap" style="width: 90px;" title="占头部最高粉丝比: ${percentOfMax}%">
-          <div class="leaderboard-source-seg" style="width: ${percentOfMax}%; background: var(--accent-gold);"></div>
+          <div class="leaderboard-source-seg" style="width: ${percentOfMax}%; background: var(--amber);"></div>
         </div>
 
         <span class="leaderboard-followers-badge">
@@ -2418,7 +2418,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toast = document.createElement('div');
     toast.className = 'toast-item';
     toast.innerHTML = `
-      <span class="toast-svg-icon" style="display: flex; align-items: center; color: var(--accent-primary);">
+      <span class="toast-svg-icon" style="display: flex; align-items: center; color: var(--cyan);">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#check-circle"/></svg>
       </span>
       <span>${escapeHtml(message)}</span>
@@ -2454,10 +2454,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function setAddResult(kind, html) {
     if (!addBloggerResult) return;
     const palette = {
-      ok: ['var(--accent-success)', 'hsla(152, 69%, 45%, 0.14)'],
-      err: ['var(--accent-danger)', 'var(--accent-danger-subtle)'],
-      info: ['var(--text-secondary)', 'var(--bg-chip)'],
-    }[kind] || ['var(--text-secondary)', 'var(--bg-chip)'];
+      ok: ['var(--green)', 'hsla(152, 69%, 45%, 0.14)'],
+      err: ['var(--red)', 'var(--red-soft)'],
+      info: ['var(--ink-soft)', 'var(--chip)'],
+    }[kind] || ['var(--ink-soft)', 'var(--chip)'];
     addBloggerResult.style.color = palette[0];
     addBloggerResult.style.background = palette[1];
     addBloggerResult.style.border = `1px solid ${palette[0]}40`;

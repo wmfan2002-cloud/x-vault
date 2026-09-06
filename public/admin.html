@@ -212,7 +212,7 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#help-circle"/></svg>
                     <span>凭据获取指引：</span>
                   </div>
-                  <div class="guide-content">登录 <a href="https://x.com" target="_blank" style="color:var(--accent-primary); text-decoration:underline;">x.com</a> 后按 <code>F12</code> 打开开发者工具 → Application → Cookies 复制 <code>ct0</code> 与 <code>auth_token</code>。</div>
+                  <div class="guide-content">登录 <a href="https://x.com" target="_blank" style="color:var(--cyan); text-decoration:underline;">x.com</a> 后按 <code>F12</code> 打开开发者工具 → Application → Cookies 复制 <code>ct0</code> 与 <code>auth_token</code>。</div>
                 </div>
 
                 <form id="vault-cookie-form" onsubmit="return false;">
@@ -289,7 +289,7 @@
                 <div id="sync-progress-box" class="sync-progress-box-inline">
                   <div class="sync-progress-header">
                     <span id="sync-progress-status-text">增量同步引擎待命中</span>
-                    <span id="sync-progress-count-text" style="font-family: var(--font-mono); color: var(--text-muted);">准备就绪</span>
+                    <span id="sync-progress-count-text" style="font-family: var(--type-mono); color: var(--ink-muted);">准备就绪</span>
                   </div>
                   <div class="sync-progress-track">
                     <div id="sync-progress-fill" class="sync-progress-fill" style="width: 0%;"></div>
@@ -323,7 +323,7 @@
               <div style="display: flex; flex-direction: column; gap: 14px;">
                 <div class="action-subgroup">
                   <div class="action-subgroup-title">
-                    <svg width="13" height="13" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#clock"/></svg>
+                    <svg width="13" height="13" fill="none" stroke="var(--cyan)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#clock"/></svg>
                     <span>GitHub Actions 离线任务 (脱机慢速)</span>
                   </div>
                   <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -343,11 +343,11 @@
                   </div>
                 </div>
 
-                <div style="height: 1px; background: var(--border-subtle);"></div>
+                <div style="height: 1px; background: var(--line-soft);"></div>
 
                 <div class="action-subgroup">
                   <div class="action-subgroup-title">
-                    <svg width="13" height="13" fill="none" stroke="var(--text-muted)" stroke-width="2" aria-hidden="true"><use href="/icons.svg#download-cloud"/></svg>
+                    <svg width="13" height="13" fill="none" stroke="var(--ink-muted)" stroke-width="2" aria-hidden="true"><use href="/icons.svg#download-cloud"/></svg>
                     <span>本地数据快照</span>
                   </div>
                   <div style="display: flex; gap: 8px;">
@@ -378,33 +378,33 @@
             <!-- 规格牌：纯静态文案，没有 id，admin.js 不碰它 -->
             <section class="vault-panel-card">
               <div class="panel-heading" style="margin-bottom: 14px;">
-                <svg width="16" height="16" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#cpu"/></svg>
+                <svg width="16" height="16" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#cpu"/></svg>
                 <span class="shiny-gold" style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;">Infrastructure Specifications</span>
               </div>
               <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="color: var(--text-muted);">Deployment:</span>
-                  <span style="font-family: var(--font-mono); color: var(--text-main);">Cloudflare Pages (D1 + R2)</span>
+                  <span style="color: var(--ink-muted);">Deployment:</span>
+                  <span style="font-family: var(--type-mono); color: var(--ink);">Cloudflare Pages (D1 + R2)</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="color: var(--text-muted);">Runtime:</span>
-                  <span style="font-family: var(--font-mono); color: var(--text-main);">Node.js Express / Edge</span>
+                  <span style="color: var(--ink-muted);">Runtime:</span>
+                  <span style="font-family: var(--type-mono); color: var(--ink);">Node.js Express / Edge</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="color: var(--text-muted);">Database:</span>
-                  <span style="font-family: var(--font-mono); color: var(--accent-primary);">Cloudflare D1 (SQLite)</span>
+                  <span style="color: var(--ink-muted);">Database:</span>
+                  <span style="font-family: var(--type-mono); color: var(--cyan);">Cloudflare D1 (SQLite)</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="color: var(--text-muted);">Storage:</span>
-                  <span style="font-family: var(--font-mono); color: var(--accent-spark);">Cloudflare R2 (10GB)</span>
+                  <span style="color: var(--ink-muted);">Storage:</span>
+                  <span style="font-family: var(--type-mono); color: var(--pink);">Cloudflare R2 (10GB)</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="color: var(--text-muted);">Sync Engine:</span>
-                  <span style="font-family: var(--font-mono); color: var(--accent-success);">GraphQL Edge Spider</span>
+                  <span style="color: var(--ink-muted);">Sync Engine:</span>
+                  <span style="font-family: var(--type-mono); color: var(--green);">GraphQL Edge Spider</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="color: var(--text-muted);">Sync Mode:</span>
-                  <span style="font-family: var(--font-mono); color: var(--accent-primary);">Smart Incremental</span>
+                  <span style="color: var(--ink-muted);">Sync Mode:</span>
+                  <span style="font-family: var(--type-mono); color: var(--cyan);">Smart Incremental</span>
                 </div>
               </div>
             </section>
@@ -526,7 +526,7 @@
             <section class="vault-panel-card analytics-card flex-1">
               <div class="panel-header-line">
                 <div class="panel-heading">
-                  <svg width="18" height="18" fill="none" stroke="var(--accent-spark)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
+                  <svg width="18" height="18" fill="none" stroke="var(--pink)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#flame"/></svg>
                   <h2>本站博主点击热度 TOP 10 榜</h2>
                 </div>
                 <span class="analytics-tag-pill spark">全站综合交互</span>
@@ -543,7 +543,7 @@
             <section class="vault-panel-card analytics-card side-card">
               <div class="panel-header-line">
                 <div class="panel-heading">
-                  <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#pie-chart"/></svg>
+                  <svg width="18" height="18" fill="none" stroke="var(--cyan)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#pie-chart"/></svg>
                   <h2>点击场景来源占比</h2>
                 </div>
                 <span class="analytics-tag-pill primary">渠道拆解</span>
@@ -565,7 +565,7 @@
             <section class="vault-panel-card analytics-card flex-1">
               <div class="panel-header-line">
                 <div class="panel-heading">
-                  <svg width="18" height="18" fill="none" stroke="var(--accent-gold)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#star"/></svg>
+                  <svg width="18" height="18" fill="none" stroke="var(--amber)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#star"/></svg>
                   <h2>全网粉丝规模 TOP 10 领奖台</h2>
                 </div>
                 <span class="analytics-tag-pill gold">创作者影响力</span>
@@ -582,7 +582,7 @@
             <section class="vault-panel-card analytics-card side-card">
               <div class="panel-header-line">
                 <div class="panel-heading">
-                  <svg width="18" height="18" fill="none" stroke="var(--accent-success)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#bar-chart"/></svg>
+                  <svg width="18" height="18" fill="none" stroke="var(--green)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#bar-chart"/></svg>
                   <h2>粉丝量级梯度分层</h2>
                 </div>
                 <span class="analytics-tag-pill emerald">梯队结构</span>
@@ -597,7 +597,7 @@
           <section class="vault-panel-card analytics-card">
             <div class="panel-header-line">
               <div class="panel-heading">
-                <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#shield"/></svg>
+                <svg width="18" height="18" fill="none" stroke="var(--cyan)" stroke-width="2.2" aria-hidden="true"><use href="/icons.svg#shield"/></svg>
                 <h2>博主资产健康度与官方认证画像</h2>
               </div>
               <span class="analytics-tag-pill cyan">资产风控</span>
@@ -719,7 +719,7 @@
       <div class="auth-card-window admin-modal-window admin-modal-export-window">
         <div class="admin-modal-header">
           <div class="admin-modal-title-group">
-            <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#file-text"/></svg>
+            <svg width="18" height="18" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#file-text"/></svg>
             <h3 class="admin-modal-title">博主 Handle 资产导出</h3>
           </div>
           <button class="drawer-close-btn btn-close-modal" id="btn-close-export-modal" aria-label="关闭">
@@ -746,7 +746,7 @@
       <div class="auth-card-window admin-modal-window admin-modal-add-window">
         <div class="admin-modal-header">
           <div class="admin-modal-title-group">
-            <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#user-plus"/></svg>
+            <svg width="18" height="18" fill="none" stroke="var(--cyan)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#user-plus"/></svg>
             <h3 class="admin-modal-title">添加博主档案</h3>
           </div>
           <button class="drawer-close-btn btn-close-modal" aria-label="关闭">
@@ -777,7 +777,7 @@
       <div class="auth-card-window admin-modal-window admin-modal-refetch-window">
         <div class="admin-modal-header">
           <div class="admin-modal-title-group">
-            <svg width="18" height="18" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#image"/></svg>
+            <svg width="18" height="18" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/icons.svg#image"/></svg>
             <h3 class="admin-modal-title">补回缺失的头像</h3>
           </div>
           <button class="drawer-close-btn btn-close-modal" aria-label="关闭">

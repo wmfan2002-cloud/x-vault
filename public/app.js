@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(update);
   }
 
-  function triggerClickSpark(e, sparkCount = 12, color = 'var(--accent-spark)') {
+  function triggerClickSpark(e, sparkCount = 12, color = 'var(--pink)') {
     const x = e ? (e.clientX || window.innerWidth / 2) : window.innerWidth / 2;
     const y = e ? (e.clientY || window.innerHeight / 2) : window.innerHeight / 2;
 
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   themeBtn?.addEventListener('click', (e) => {
-    triggerClickSpark(e, 8, 'var(--accent-primary)');
+    triggerClickSpark(e, 8, 'var(--cyan)');
     const nextTheme = state.currentTheme === 'oled' ? 'light' : 'oled';
     applyTheme(nextTheme);
     showToast(`已切换至 ${nextTheme === 'light' ? '清爽浅色' : '纯黑极简 (OLED)'} 模式`);
@@ -976,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   btnLoadSampleData?.addEventListener('click', (e) => {
-    triggerClickSpark(e, 14, 'var(--accent-gold)');
+    triggerClickSpark(e, 14, 'var(--amber)');
     state.rawUsers = defaultSampleData;
     localStorage.setItem('x_archive_cached_data', JSON.stringify(defaultSampleData));
     updateHeroAndMetrics();
@@ -1047,8 +1047,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function pickSpotlightCreator() {
     if (state.rawUsers.length === 0) {
       spotlightContent.innerHTML = `
-        <div style="padding: 6px 0; color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
-          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;">准备好探索精选博主了吗？</div>
+        <div style="padding: 6px 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6;">
+          <div style="font-weight: 700; color: var(--ink); margin-bottom: 4px;">准备好探索精选博主了吗？</div>
           <div>在控制台配置 Cookie 并点击一键同步后，此处将为您自动推送主页优质创作者。</div>
         </div>
       `;
@@ -1109,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   btnShuffleSpotlight?.addEventListener('click', (e) => {
-    triggerClickSpark(e, 12, 'var(--accent-primary)');
+    triggerClickSpark(e, 12, 'var(--cyan)');
     // 手动"换一位推荐"才真正随机，页面加载时保持当日稳定
     spotlightShuffleRequested = true;
     pickSpotlightCreator();
@@ -1283,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnResetFilters?.addEventListener('click', (e) => {
-    triggerClickSpark(e, 8, 'var(--accent-primary)');
+    triggerClickSpark(e, 8, 'var(--cyan)');
     globalSearch.value = '';
     state.searchQuery = '';
     searchClearBtn.classList.add('hidden');
@@ -1798,12 +1798,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   btnLuckyPick?.addEventListener('click', (e) => {
-    triggerClickSpark(e, 10, 'var(--accent-spark)');
+    triggerClickSpark(e, 10, 'var(--pink)');
     startRandomRouletteShuffle();
   });
 
   btnReshuffleAgain?.addEventListener('click', (e) => {
-    triggerClickSpark(e, 10, 'var(--accent-spark)');
+    triggerClickSpark(e, 10, 'var(--pink)');
     startRandomRouletteShuffle();
   });
 
@@ -2098,7 +2098,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toast = document.createElement('div');
     toast.className = 'toast-item';
     toast.innerHTML = `
-      <span style="color: var(--accent-primary); display: flex; align-items: center;">${ICONS.verifiedNative}</span>
+      <span style="color: var(--cyan); display: flex; align-items: center;">${ICONS.verifiedNative}</span>
       <span>${escapeHtml(message)}</span>
     `;
 
